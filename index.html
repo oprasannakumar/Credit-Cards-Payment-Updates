@@ -1,70 +1,171 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Monthly Expense</title>
+  <meta charset="UTF-8">
+  <title>Monthly Expenses</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    form {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 15px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
 </head>
+
 <body>
 
-<h2>Add Expense</h2>
-
 <form id="expenseForm">
-  <label>Date:</label><br>
-  <input type="date" id="date" required><br><br>
 
-  <label>Narration:</label><br>
-  <input type="text" id="narration" required><br><br>
+  <h2>Monthly Expense</h2>
 
-  <label>Type:</label><br>
-  <select id="trtype">
-    <option value="Cash">Cash</option>
-    <option value="Debit">Debit</option>
-    <option value="Credit">Credit</option>
-    <option value="UPI">UPI</option>
-    <option value="NET">NET</option>
-  </select><br><br>
+  <label>Date</label>
+  <input type="date" id="date" required>
 
-  <label>Amount:</label><br>
-  <input type="number" id="amount" required><br><br>
+  <label>Narration</label>
+  <input type="text" id="narration" placeholder="Description" required>
+
+  <label>Transaction Type</label>
+  <select id="trtype" required>
+    <option value="">Select</option>
+    <option value="cash">Cash</option>
+    <option value="upi">UPI</option>
+    <option value="net">Net Banking</option>
+    <option value="debit">Debit</option>
+    <option value="credit">Credit</option>
+  </select>
+
+  <label id="fromToLabel" style="display:none;">From / To</label>
+  <select id="from_to" style="display:none;"></select>
+
+  <label>Amount</label>
+  <input type="number" id="amount" required>
 
   <button type="submit">Submit</button>
+
 </form>
 
 <script>
-document.getElementById("expenseForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
+  const trtype = document.getElementById("trtype");
+  const fromTo = document.getElementById("from_to");
+  const fromToLabel = document.getElementById("fromToLabel");
 
-  const data = {
-    date: document.getElementById("date").value,
-    narration: document.getElementById("narration").value,
-    trtype: document.getElementById("trtype").value,
-    amount: document.getElementById("amount").value
-  };
+  const bankAccounts = [
+    "Axis",
+    "HDFC Old",
+    "HDFC New",
+    "ICICI",
+    "IndusInd",
+    "Kotak",
+    "RBL",
+    "SBI"
+  ];
 
-  console.log("Submitting:", data);
+  const creditCards = [
+    "Axis Flipkart",
+    "MyZone",
+    "HDFC Millennia"
+  ];
 
-  try {
-    const response = await fetch(
-      "https://bhaskumar.app.n8n.cloud/webhook/monthly-expences",
-      {
+  trtype.addEventListener("change", () => {
+    fromTo.innerHTML = "";
+
+    if (trtype.value === "cash") {
+      fromTo.style.display = "none";
+      fromToLabel.style.display = "none";
+      fromTo.required = false;
+      fromTo.value = "Cash";
+      return;
+    }
+
+    fromTo.style.display = "block";
+    fromToLabel.style.display = "block";
+    fromTo.required = true;
+
+    let options = [];
+
+    if (["upi", "net", "debit"].includes(trtype.value)) {
+      options = bankAccounts;
+    }
+
+    if (trtype.value === "credit") {
+      options = creditCards;
+    }
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.text = "Select";
+    fromTo.appendChild(defaultOption);
+
+    options.forEach(opt => {
+      const option = document.createElement("option");
+      option.value = opt;
+      option.text = opt;
+      fromTo.appendChild(option);
+    });
+  });
+
+  document.getElementById("expenseForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const data = {
+      date: document.getElementById("date").value,
+      narration: document.getElementById("narration").value,
+      trtype: trtype.value,
+      from_to: trtype.value === "cash" ? "Cash" : fromTo.value,
+      amount: document.getElementById("amount").value
+    };
+
+    console.log("Submitting:", data);
+
+    try {
+      await fetch("https://bhaskumar.app.n8n.cloud/webhook/monthly-expences", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
-      }
-    );
+      });
 
-    alert("✅ Expense sent to n8n");
-  } catch (err) {
-    console.error(err);
-    alert("❌ Error sending expense");
-  }
-});
+      alert("✅ Expense saved successfully");
+      document.getElementById("expenseForm").reset();
+      fromTo.style.display = "none";
+      fromToLabel.style.display = "none";
+
+    } catch (err) {
+      alert("❌ Error sending data");
+      console.error(err);
+    }
+  });
 </script>
 
 </body>
 </html>
-
-
-
-
