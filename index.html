@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Transaction</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 12px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #0088cc;
+      color: white;
+      border: none;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h3>Add Transaction</h3>
+
+  <form id="txnForm">
+    <label>Date</label>
+    <input type="date" name="date" required />
+
+    <label>Narration</label>
+    <input type="text" name="narration" required />
+
+    <label>Transaction Type</label>
+    <select name="trtype" required>
+      <option value="Debit">Debit</option>
+      <option value="Credit">Credit</option>
+    </select>
+
+    <label>Amount</label>
+    <input type="number" name="amount" required />
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    const form = document.getElementById("txnForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const data = {
+        date: form.date.value,
+        narration: form.narration.value,
+        trtype: form.trtype.value,
+        amount: form.amount.value
+      };
+
+      await fetch("PASTE_N8N_WEBHOOK_URL_HERE", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      alert("Transaction submitted successfully!");
+      window.close();
+    });
+  </script>
+
+</body>
+</html>
