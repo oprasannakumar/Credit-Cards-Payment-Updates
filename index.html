@@ -15,7 +15,7 @@
       background: #ffffff;
       padding: 20px;
       border-radius: 8px;
-      max-width: 400px;
+      max-width: 420px;
       margin: auto;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
@@ -28,6 +28,14 @@
       width: 100%;
       padding: 8px;
       margin-top: 5px;
+    }
+    .radio-group {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
+    .radio-group label {
+      font-weight: normal;
     }
     button {
       margin-top: 15px;
@@ -47,14 +55,30 @@
 
 <form id="expenseForm">
 
-  <h2>Monthly Expense</h2>
+  <h2>Transaction Entry</h2>
 
+  <!-- Date -->
   <label>Date</label>
   <input type="date" id="date" required>
 
+  <!-- Narration -->
   <label>Narration</label>
   <input type="text" id="narration" placeholder="Description" required>
 
+  <!-- Deposit / Withdraw -->
+  <label>Transaction Flow</label>
+  <div class="radio-group">
+    <label>
+      <input type="radio" name="flow_type" value="deposit" required>
+      Deposit
+    </label>
+    <label>
+      <input type="radio" name="flow_type" value="withdraw">
+      Withdraw
+    </label>
+  </div>
+
+  <!-- Transaction Type -->
   <label>Transaction Type</label>
   <select id="trtype" required>
     <option value="">Select</option>
@@ -65,9 +89,11 @@
     <option value="credit">Credit</option>
   </select>
 
+  <!-- From / To -->
   <label id="fromToLabel" style="display:none;">From / To</label>
   <select id="from_to" style="display:none;"></select>
 
+  <!-- Amount -->
   <label>Amount</label>
   <input type="number" id="amount" required>
 
@@ -138,9 +164,12 @@
   document.getElementById("expenseForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
+    const flowType = document.querySelector('input[name="flow_type"]:checked').value;
+
     const data = {
       date: document.getElementById("date").value,
       narration: document.getElementById("narration").value,
+      flow_type: flowType,
       trtype: trtype.value,
       from_to: trtype.value === "cash" ? "Cash" : fromTo.value,
       amount: document.getElementById("amount").value
@@ -149,13 +178,13 @@
     console.log("Submitting:", data);
 
     try {
-      await fetch("https://bhaskumar.app.n8n.cloud/webhook/monthly-expences", {
+      await fetch("https://YOUR_N8N_DOMAIN/webhook/monthly-expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
 
-      alert("✅ Expense saved successfully");
+      alert("✅ Transaction saved successfully");
       document.getElementById("expenseForm").reset();
       fromTo.style.display = "none";
       fromToLabel.style.display = "none";
