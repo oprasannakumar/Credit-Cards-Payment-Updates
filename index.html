@@ -213,6 +213,7 @@
         : purposeSelect.value;
 
     const data = {
+      category: "monthly_expense",   // ✅ ADDED (important)
       date: document.getElementById("date").value,
       narration: document.getElementById("narration").value,
       purpose: purposeValue,
@@ -241,5 +242,8 @@
   });
 </script>
 
+
 </body>
 </html>
+
+for the above code leave some thing that the webhook understands it is related to monthly expences
