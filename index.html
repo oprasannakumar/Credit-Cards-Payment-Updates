@@ -54,7 +54,6 @@
 <body>
 
 <form id="expenseForm">
-
   <h2>Transaction Entry</h2>
 
   <!-- Date -->
@@ -90,9 +89,17 @@
     <option value="Vegitables">Vegitables</option>
     <option value="Vochers">Vochers</option>
     <option value="Water">Water</option>
+    <option value="Other">Other</option>
   </select>
 
-  
+  <!-- Other Purpose -->
+  <input
+    type="text"
+    id="otherPurpose"
+    placeholder="Enter custom purpose"
+    style="display:none;"
+  >
+
   <!-- Deposit / Withdraw -->
   <label>Transaction Flow</label>
   <div class="radio-group">
@@ -126,46 +133,43 @@
   <input type="number" id="amount" required>
 
   <button type="submit">Submit</button>
-
 </form>
 
 <script>
   const trtype = document.getElementById("trtype");
   const fromTo = document.getElementById("from_to");
   const fromToLabel = document.getElementById("fromToLabel");
-  const Purp=document.getElementById("Purpose");
+  const purposeSelect = document.getElementById("Purpose");
+  const otherPurposeInput = document.getElementById("otherPurpose");
+
   const bankAccounts = [
-    "Axis",
-    "HDFC Old",
-    "HDFC New",
-    "ICICI",
-    "IndusInd",
-    "Kotak",
-    "RBL",
-    "SBI"
+    "Axis", "HDFC Old", "HDFC New", "ICICI",
+    "IndusInd", "Kotak", "RBL", "SBI"
   ];
 
   const creditCards = [
-    "Axis Flipkart",
-    "Axis MyZone",
-    "Axis Neo",
-    "HDFC PhonePe",
-    "HDFC Tata Neu",
-    "HDFC Millennia",
-    "HSBC",
-    "IDFC First Millenia",
-    "ICICI Amazon",
-    "ICICI Coral",
-    "ICICI Expressions",
-    "Indusind Plat Aura EDGE",
-    "Indusind Legend",
-    "yes Finbooster",
-    "Kotak League",
-    "Kotak Image",
-    "SBI BPCL",
-    "Standard Charted"
+    "Axis Flipkart", "Axis MyZone", "Axis Neo",
+    "HDFC PhonePe", "HDFC Tata Neu", "HDFC Millennia",
+    "HSBC", "IDFC First Millenia",
+    "ICICI Amazon", "ICICI Coral", "ICICI Expressions",
+    "Indusind Plat Aura EDGE", "Indusind Legend",
+    "Yes Finbooster", "Kotak League", "Kotak Image",
+    "SBI BPCL", "Standard Chartered"
   ];
 
+  /* Purpose Other handling */
+  purposeSelect.addEventListener("change", () => {
+    if (purposeSelect.value === "Other") {
+      otherPurposeInput.style.display = "block";
+      otherPurposeInput.required = true;
+    } else {
+      otherPurposeInput.style.display = "none";
+      otherPurposeInput.required = false;
+      otherPurposeInput.value = "";
+    }
+  });
+
+  /* Transaction type handling */
   trtype.addEventListener("change", () => {
     fromTo.innerHTML = "";
 
@@ -173,7 +177,6 @@
       fromTo.style.display = "none";
       fromToLabel.style.display = "none";
       fromTo.required = false;
-      fromTo.value = "Cash";
       return;
     }
 
@@ -182,43 +185,42 @@
     fromTo.required = true;
 
     let options = [];
-
-    if (["upi", "net", "debit"].includes(trtype.value)) {
-      options = bankAccounts;
-    }
-
-    if (trtype.value === "credit") {
-      options = creditCards;
-    }
+    if (["upi", "net", "debit"].includes(trtype.value)) options = bankAccounts;
+    if (trtype.value === "credit") options = creditCards;
 
     const defaultOption = document.createElement("option");
     defaultOption.value = "";
     defaultOption.text = "Select";
     fromTo.appendChild(defaultOption);
 
-    options.forEach(opt => {
-      const option = document.createElement("option");
-      option.value = opt;
-      option.text = opt;
-      fromTo.appendChild(option);
+    options.forEach(val => {
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.text = val;
+      fromTo.appendChild(opt);
     });
   });
 
-  document.getElementById("expenseForm").addEventListener("submit", async function (e) {
+  /* Submit */
+  document.getElementById("expenseForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const flowType = document.querySelector('input[name="flow_type"]:checked').value;
 
+    const purposeValue =
+      purposeSelect.value === "Other"
+        ? otherPurposeInput.value
+        : purposeSelect.value;
+
     const data = {
       date: document.getElementById("date").value,
       narration: document.getElementById("narration").value,
+      purpose: purposeValue,
       flow_type: flowType,
       trtype: trtype.value,
       from_to: trtype.value === "cash" ? "Cash" : fromTo.value,
       amount: document.getElementById("amount").value
     };
-
-    console.log("Submitting:", data);
 
     try {
       await fetch("https://hook.eu1.make.com/uayw6m2h1u56gz1fuhnyewvh860q8tjy", {
@@ -231,7 +233,7 @@
       document.getElementById("expenseForm").reset();
       fromTo.style.display = "none";
       fromToLabel.style.display = "none";
-
+      otherPurposeInput.style.display = "none";
     } catch (err) {
       alert("❌ Error sending data");
       console.error(err);
@@ -241,8 +243,3 @@
 
 </body>
 </html>
-
-
-
-
-
