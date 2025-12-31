@@ -27,9 +27,7 @@
     display: block;
   }
 
-  input,
-  select,
-  button {
+  input, select, button {
     width: 100%;
     height: 42px;
     padding: 8px 10px;
@@ -40,8 +38,7 @@
     border: 1px solid #ccc;
   }
 
-  input:disabled,
-  select:disabled {
+  input:disabled, select:disabled {
     background-color: #f0f0f0;
     color: #666;
     cursor: not-allowed;
@@ -111,6 +108,21 @@
 
 <input type="text" id="otherPurpose" placeholder="Enter custom purpose" style="display:none;">
 
+<!-- 🔹 SPENT FOR -->
+<label>Spent For</label>
+<select id="spentFor" required>
+  <option value="">Select</option>
+  <option>Vasavi</option>
+  <option>Mother</option>
+  <option>Grand Father</option>
+  <option>Pedhamma</option>
+  <option>Chinnama</option>
+  <option>Srinivas Babai</option>
+  <option>Other</option>
+</select>
+
+<input type="text" id="otherSpentFor" placeholder="Enter name" style="display:none;">
+
 <label>Transaction Flow</label>
 <div class="radio-group">
   <label><input type="radio" name="flow_type" value="deposit" required> Deposit</label>
@@ -134,19 +146,18 @@
 <div id="denominationSection" style="display:none;">
   <label>Cash Denominations</label>
   <div class="denoms">
-    <input type="number" class="denom" data-val="1" placeholder="&#8377;1" disabled>
-    <input type="number" class="denom" data-val="2" placeholder="&#8377;2" disabled>
-    <input type="number" class="denom" data-val="5" placeholder="&#8377;5" disabled>
-    <input type="number" class="denom" data-val="10" placeholder="&#8377;10" disabled>
-    <input type="number" class="denom" data-val="20" placeholder="&#8377;20" disabled>
-    <input type="number" class="denom" data-val="50" placeholder="&#8377;50" disabled>
-    <input type="number" class="denom" data-val="100" placeholder="&#8377;100" disabled>
-    <input type="number" class="denom" data-val="200" placeholder="&#8377;200" disabled>
-    <input type="number" class="denom" data-val="500" placeholder="&#8377;500" disabled>
+    <input type="number" class="denom" data-val="1" placeholder="₹1" disabled>
+    <input type="number" class="denom" data-val="2" placeholder="₹2" disabled>
+    <input type="number" class="denom" data-val="5" placeholder="₹5" disabled>
+    <input type="number" class="denom" data-val="10" placeholder="₹10" disabled>
+    <input type="number" class="denom" data-val="20" placeholder="₹20" disabled>
+    <input type="number" class="denom" data-val="50" placeholder="₹50" disabled>
+    <input type="number" class="denom" data-val="100" placeholder="₹100" disabled>
+    <input type="number" class="denom" data-val="200" placeholder="₹200" disabled>
+    <input type="number" class="denom" data-val="500" placeholder="₹500" disabled>
   </div>
 </div>
 
-<!-- 🔹 AMOUNT AT BOTTOM -->
 <label>Amount</label>
 <input type="number" id="amount" required>
 
@@ -154,12 +165,16 @@
 </form>
 
 <script>
+const purposeSelect = document.getElementById("purpose");
+const otherPurpose = document.getElementById("otherPurpose");
+
+const spentFor = document.getElementById("spentFor");
+const otherSpentFor = document.getElementById("otherSpentFor");
+
 const trtype = document.getElementById("trtype");
 const amountInput = document.getElementById("amount");
 const denomInputs = document.querySelectorAll(".denom");
 const denominationSection = document.getElementById("denominationSection");
-const purposeSelect = document.getElementById("purpose");
-const otherPurpose = document.getElementById("otherPurpose");
 const fromTo = document.getElementById("from_to");
 const accountLabel = document.getElementById("accountLabel");
 
@@ -176,22 +191,20 @@ const creditCards = [
 
 /* Purpose → Other */
 purposeSelect.addEventListener("change", () => {
-  if (purposeSelect.value === "Other") {
-    otherPurpose.style.display = "block";
-    otherPurpose.required = true;
-  } else {
-    otherPurpose.style.display = "none";
-    otherPurpose.required = false;
-    otherPurpose.value = "";
-  }
+  otherPurpose.style.display = purposeSelect.value === "Other" ? "block" : "none";
+  otherPurpose.required = purposeSelect.value === "Other";
+});
+
+/* Spent For → Other */
+spentFor.addEventListener("change", () => {
+  otherSpentFor.style.display = spentFor.value === "Other" ? "block" : "none";
+  otherSpentFor.required = spentFor.value === "Other";
 });
 
 /* Calculate amount from denominations */
 function calculateAmount() {
   let total = 0;
-  denomInputs.forEach(i => {
-    total += (Number(i.value) || 0) * Number(i.dataset.val);
-  });
+  denomInputs.forEach(i => total += (Number(i.value) || 0) * Number(i.dataset.val));
   amountInput.value = total;
 }
 
@@ -216,10 +229,7 @@ trtype.addEventListener("change", () => {
   }
 
   denominationSection.style.display = "none";
-  denomInputs.forEach(i => {
-    i.disabled = true;
-    i.value = "";
-  });
+  denomInputs.forEach(i => { i.disabled = true; i.value = ""; });
 
   amountInput.disabled = false;
   amountInput.value = "";
@@ -248,6 +258,7 @@ document.getElementById("expenseForm").addEventListener("submit", async (e) => {
     date: date.value,
     narration: narration.value,
     purpose: purposeSelect.value === "Other" ? otherPurpose.value : purposeSelect.value,
+    spent_for: spentFor.value === "Other" ? otherSpentFor.value : spentFor.value,
     flow_type: document.querySelector('input[name="flow_type"]:checked').value,
     trtype: trtype.value,
     from_to: trtype.value === "cash" ? "Cash" : fromTo.value,
@@ -265,6 +276,7 @@ document.getElementById("expenseForm").addEventListener("submit", async (e) => {
   expenseForm.reset();
   amountInput.disabled = false;
   otherPurpose.style.display = "none";
+  otherSpentFor.style.display = "none";
   fromTo.style.display = "none";
   accountLabel.style.display = "none";
   denominationSection.style.display = "none";
