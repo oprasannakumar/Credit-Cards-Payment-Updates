@@ -60,6 +60,30 @@
 <label>Narration</label>
 <input type="text" id="narration" required>
 
+<label>Purpose</label>
+<select id="purpose" required>
+  <option value="">Select</option>
+  <option>Business</option>
+  <option>Donation</option>
+  <option>Entertainment</option>
+  <option>Food</option>
+  <option>Grocery</option>
+  <option>Hospital</option>
+  <option>House</option>
+  <option>Income</option>
+  <option>Insurance</option>
+  <option>Loan</option>
+  <option>Medicines</option>
+  <option>Miscellaneous</option>
+  <option>Puja</option>
+  <option>Tax</option>
+  <option>Travelling</option>
+  <option>Utility Bills</option>
+  <option>Other</option>
+</select>
+
+<input type="text" id="otherPurpose" placeholder="Enter custom purpose" style="display:none;">
+
 <label>Transaction Flow</label>
 <div class="radio-group">
   <label><input type="radio" name="flow_type" value="deposit" required> Deposit</label>
@@ -76,17 +100,20 @@
   <option value="credit">Credit</option>
 </select>
 
+<label id="accountLabel" style="display:none;">From / To</label>
+<select id="from_to" style="display:none;"></select>
+
 <label>Amount</label>
 <input type="number" id="amount" required>
 
 <label>Cash Denominations</label>
 <div class="denoms">
-  <input type="number" class="denom" data-val="1"   placeholder="₹1" disabled>
-  <input type="number" class="denom" data-val="2"   placeholder="₹2" disabled>
-  <input type="number" class="denom" data-val="5"   placeholder="₹5" disabled>
-  <input type="number" class="denom" data-val="10"  placeholder="₹10" disabled>
-  <input type="number" class="denom" data-val="20"  placeholder="₹20" disabled>
-  <input type="number" class="denom" data-val="50"  placeholder="₹50" disabled>
+  <input type="number" class="denom" data-val="1" placeholder="₹1" disabled>
+  <input type="number" class="denom" data-val="2" placeholder="₹2" disabled>
+  <input type="number" class="denom" data-val="5" placeholder="₹5" disabled>
+  <input type="number" class="denom" data-val="10" placeholder="₹10" disabled>
+  <input type="number" class="denom" data-val="20" placeholder="₹20" disabled>
+  <input type="number" class="denom" data-val="50" placeholder="₹50" disabled>
   <input type="number" class="denom" data-val="100" placeholder="₹100" disabled>
   <input type="number" class="denom" data-val="200" placeholder="₹200" disabled>
   <input type="number" class="denom" data-val="500" placeholder="₹500" disabled>
@@ -99,35 +126,66 @@
 const trtype = document.getElementById("trtype");
 const amountInput = document.getElementById("amount");
 const denomInputs = document.querySelectorAll(".denom");
+const purposeSelect = document.getElementById("purpose");
+const otherPurpose = document.getElementById("otherPurpose");
+const fromTo = document.getElementById("from_to");
+const accountLabel = document.getElementById("accountLabel");
 
-/* 🔢 Calculate amount from denominations */
+const bankAccounts = [
+  "Axis", "HDFC Old", "HDFC New", "ICICI",
+  "IndusInd", "Kotak", "RBL", "SBI"
+];
+
+const creditCards = [
+  "Axis Flipkart", "Axis MyZone", "Axis Neo",
+  "HDFC PhonePe", "HDFC Tata Neu", "HDFC Millennia",
+  "HSBC", "IDFC First Millenia",
+  "ICICI Amazon", "ICICI Coral", "ICICI Expressions",
+  "Indusind Plat Aura EDGE", "Indusind Legend",
+  "Yes Finbooster", "Kotak League", "Kotak Image",
+  "SBI BPCL", "Standard Chartered"
+];
+
+/* Purpose → Other */
+purposeSelect.addEventListener("change", () => {
+  if (purposeSelect.value === "Other") {
+    otherPurpose.style.display = "block";
+    otherPurpose.required = true;
+  } else {
+    otherPurpose.style.display = "none";
+    otherPurpose.required = false;
+    otherPurpose.value = "";
+  }
+});
+
+/* Calculate amount from denominations */
 function calculateAmount() {
   let total = 0;
-  denomInputs.forEach(input => {
-    const qty = Number(input.value) || 0;
-    const val = Number(input.dataset.val);
-    total += qty * val;
+  denomInputs.forEach(i => {
+    total += (Number(i.value) || 0) * Number(i.dataset.val);
   });
   amountInput.value = total;
 }
 
-/* 🔄 Enable/Disable based on transaction type */
+/* Transaction Type logic */
 trtype.addEventListener("change", () => {
+  fromTo.innerHTML = "";
 
   if (trtype.value === "cash") {
-    // Enable denominations
+    accountLabel.style.display = "none";
+    fromTo.style.display = "none";
+    fromTo.required = false;
+
     denomInputs.forEach(i => {
       i.disabled = false;
       i.addEventListener("input", calculateAmount);
     });
 
-    // Disable manual amount
     amountInput.value = 0;
     amountInput.disabled = true;
     return;
   }
 
-  // Non-cash → disable denominations
   denomInputs.forEach(i => {
     i.disabled = true;
     i.value = "";
@@ -135,23 +193,34 @@ trtype.addEventListener("change", () => {
 
   amountInput.disabled = false;
   amountInput.value = "";
+
+  accountLabel.style.display = "block";
+  fromTo.style.display = "block";
+  fromTo.required = true;
+
+  let options = [];
+  if (["upi", "net", "debit"].includes(trtype.value)) options = bankAccounts;
+  if (trtype.value === "credit") options = creditCards;
+
+  fromTo.innerHTML = `<option value="">Select</option>`;
+  options.forEach(v => fromTo.innerHTML += `<option>${v}</option>`);
 });
 
-/* 🚀 Submit */
+/* Submit */
 document.getElementById("expenseForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const denominations = {};
-  denomInputs.forEach(i => {
-    denominations[i.dataset.val] = i.value || 0;
-  });
+  denomInputs.forEach(i => denominations[i.dataset.val] = i.value || 0);
 
   const data = {
     category: "monthly_expense",
     date: date.value,
     narration: narration.value,
+    purpose: purposeSelect.value === "Other" ? otherPurpose.value : purposeSelect.value,
     flow_type: document.querySelector('input[name="flow_type"]:checked').value,
     trtype: trtype.value,
+    from_to: trtype.value === "cash" ? "Cash" : fromTo.value,
     amount: amountInput.value,
     denominations
   };
@@ -165,6 +234,9 @@ document.getElementById("expenseForm").addEventListener("submit", async (e) => {
   alert("✅ Transaction saved");
   expenseForm.reset();
   amountInput.disabled = false;
+  otherPurpose.style.display = "none";
+  fromTo.style.display = "none";
+  accountLabel.style.display = "none";
 });
 </script>
 
