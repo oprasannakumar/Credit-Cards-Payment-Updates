@@ -136,6 +136,204 @@
   <label>Amount</label>
   <input type="number" id="amount" required>
 
+  <!-- ✅ SINGLE SUBMIT BUTTON -->
+  <button type="submit">Submit</button>
+</form>
+
+<script>
+const trtype = document.getElementById("trtype");
+const fromTo = document.getElementById("from_to");
+const fromToLabel = document.getElementById("fromToLabel");
+const purposeSelect = document.getElementById("Purpose");
+const otherPurposeInput = document.getElementById("otherPurpose");
+
+const denominations = [500,200,100,50,20,10,5,2,1];
+
+const bankAccounts = [
+  "Axis","HDFC Old","HDFC New","ICICI",
+  "IndusInd","Kotak","RBL","SBI"
+];
+
+const creditCards = [
+  "Axis Flipkart","Axis MyZone","Axis Neo",
+  "HDFC PhonePe","HDFC Tata Neu","HDFC Millennia",
+  "HSBC","IDFC First Millenia",
+  "ICICI Amazon","ICICI Coral","ICICI Expressions",
+  "Indusind Plat Aura EDGE","Indusind Legend",
+  "Yes Finbooster","Kotak League","Kotak Image",
+  "SBI BPCL","Standard Chartered"
+];
+
+/* Purpose handling */
+purposeSelect.addEventListener("change", () => {
+  otherPurposeInput.style.display =
+    purposeSelect.value === "Other" ? "block" : "none";
+});
+
+/* Transaction type */
+trtype.addEventListener("change", () => {
+  fromTo.innerHTML = "";
+
+  if (trtype.value === "cash") {
+    fromTo.style.display = "none";
+    fromToLabel.style.display = "none";
+    document.getElementById("denominationsBox").style.display = "block";
+    createDenominations();
+    document.getElementById("amount").readOnly = true;
+    document.getElementById("amount").value = "";
+    return;
+  }
+
+  document.getElementById("denominationsBox").style.display = "none";
+  document.getElementById("amount").readOnly = false;
+  document.getElementById("amount").value = "";
+
+  fromTo.style.display = "block";
+  fromToLabel.style.display = "block";
+
+  let options = ["upi","net","debit"].includes(trtype.value)
+    ? bankAccounts
+    : creditCards;
+
+  fromTo.innerHTML = `<option value="">Select</option>`;
+  options.forEach(v => fromTo.innerHTML += `<option>${v}</option>`);
+});
+
+/* Create denominations */
+function createDenominations() {
+  const box = document.getElementById("denominations");
+  box.innerHTML = "";
+  denominations.forEach(d => {
+    box.innerHTML += `
+      <div class="denom-row">
+        <label>${d}</label>
+        <input type="number" value="0" data-denom="${d}">
+      </div>`;
+  });
+}
+
+/* Auto calculate cash amount */
+document.addEventListener("input", e => {
+  if (e.target.closest("#denominations")) {
+    let total = 0;
+    document.querySelectorAll("#denominations input").forEach(i => {
+      total += Number(i.dataset.denom) * (Number(i.value) || 0);
+    });
+    document.getElementById("amount").value = total;
+  }
+});
+
+/* Submit */
+document.getElementById("expenseForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const cashDenoms = {};
+  document.querySelectorAll("#denominations input").forEach(i => {
+    cashDenoms[i.dataset.denom] = Number(i.value) || 0;
+  });
+
+  const purpose =
+    purposeSelect.value === "Other" ? otherPurposeInput.value : purposeSelect.value;
+
+  const data = {
+    category: "monthly_expense",
+    source: "expense_form",
+    date: date.value,
+    narration: narration.value,
+    purpose,
+    flow_type: document.querySelector('input[name="flow_type"]:checked').value,
+    trtype: trtype.value,
+    from_to: trtype.value === "cash" ? "Cash" : fromTo.value,
+    amount: Number(amount.value),
+    cash_denominations: trtype.value === "cash" ? cashDenoms : null
+  };
+
+  console.log("Payload:", data);
+
+  await fetch("YOUR_MAKE_WEBHOOK_URL", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  alert("✅ Transaction saved");
+  expenseForm.reset();
+  document.getElementById("denominationsBox").style.display = "none";
+  document.getElementById("amount").readOnly = false;
+});
+</script>
+
+</body>
+</html></head>
+
+<body>
+
+<form id="expenseForm">
+  <h2>Transaction Entry</h2>
+
+  <label>Date</label>
+  <input type="date" id="date" required>
+
+  <label>Narration</label>
+  <input type="text" id="narration" placeholder="Description" required>
+
+  <label>Purpose</label>
+  <select id="Purpose" required>
+    <option value="">Select</option>
+    <option value="Business">Business</option>
+    <option value="Donation">Donation</option>
+    <option value="Entertainment">Entertainment</option>
+    <option value="Food">Food</option>
+    <option value="Furniture">Furniture</option>
+    <option value="Grocery">Grocery</option>
+    <option value="Hospital">Hospital</option>
+    <option value="House">House</option>
+    <option value="Income">Income</option>
+    <option value="Insurance">Insurance</option>
+    <option value="Loan">Loan</option>
+    <option value="Medicines">Medicines</option>
+    <option value="Miscellaneous">Miscellaneous</option>
+    <option value="Puja">Puja</option>
+    <option value="Tax">Tax</option>
+    <option value="Serviece">Serviece</option>
+    <option value="Travelling">Travelling</option>
+    <option value="Utility Bills">Utility Bills</option>
+    <option value="Vegitables">Vegitables</option>
+    <option value="Vochers">Vochers</option>
+    <option value="Water">Water</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <input type="text" id="otherPurpose" placeholder="Enter custom purpose" style="display:none;">
+
+  <label>Transaction Flow</label>
+  <div class="radio-group">
+    <label><input type="radio" name="flow_type" value="deposit" required> Deposit</label>
+    <label><input type="radio" name="flow_type" value="withdraw"> Withdraw</label>
+  </div>
+
+  <label>Transaction Type</label>
+  <select id="trtype" required>
+    <option value="">Select</option>
+    <option value="cash">Cash</option>
+    <option value="upi">UPI</option>
+    <option value="net">Net Banking</option>
+    <option value="debit">Debit</option>
+    <option value="credit">Credit</option>
+  </select>
+
+  <label id="fromToLabel" style="display:none;">From / To</label>
+  <select id="from_to" style="display:none;"></select>
+
+  <!-- Cash Denominations -->
+  <div id="denominationsBox" style="display:none;">
+    <label>Cash Denominations</label>
+    <div id="denominations"></div>
+  </div>
+
+  <label>Amount</label>
+  <input type="number" id="amount" required>
+
   <button type="submit">Submit</button>
 </form>
 
@@ -434,4 +632,5 @@ document.getElementById("expenseForm").addEventListener("submit", async e => {
 </html>
 
 for the above code leave some thing that the webhook understands it is related to monthly expences
+
 
