@@ -1,153 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Monthly Expenses</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Monthly Expenses</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; padding:20px; }
-    form { background:#fff; padding:20px; border-radius:8px; max-width:420px; margin:auto; }
-    label { font-weight:bold; margin-top:10px; display:block; }
-    input, select, button { width:100%; padding:8px; margin-top:5px; }
-    button { background:#007bff; color:#fff; border:none; margin-top:15px; }
-    #denominations { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-    .denom-row { display:flex; gap:6px; align-items:center; }
-    .denom-row label { width:40px; }
-  </style>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    padding: 20px;
+  }
+  form {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 420px;
+    margin: auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  label {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+  }
+  input, select, button {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+  }
+  .radio-group {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+  }
+  .radio-group label {
+    font-weight: normal;
+  }
+  button {
+    margin-top: 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  button:hover {
+    background: #0056b3;
+  }
+
+  .denoms {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+</style>
 </head>
 
 <body>
 
 <form id="expenseForm">
-  <h2>Transaction Entry</h2>
+<h2>Transaction Entry</h2>
 
-  <label>Date</label>
-  <input type="date" id="date" required>
+<label>Date</label>
+<input type="date" id="date" required>
 
-  <label>Narration</label>
-  <input type="text" id="narration" required>
+<label>Narration</label>
+<input type="text" id="narration" required>
 
-  <label>Purpose</label>
-  <select id="Purpose" required>
-    <option value="">Select</option>
-    <option value="Food">Food</option>
-    <option value="Grocery">Grocery</option>
-    <option value="Other">Other</option>
-  </select>
+<label>Purpose</label>
+<select id="Purpose" required>
+<option value="">Select</option>
+<option>Business</option>
+<option>Donation</option>
+<option>Entertainment</option>
+<option>Food</option>
+<option>Grocery</option>
+<option>Income</option>
+<option>Loan</option>
+<option>Miscellaneous</option>
+<option>Utility Bills</option>
+<option>Other</option>
+</select>
 
-  <input type="text" id="otherPurpose" placeholder="Other purpose" style="display:none;">
+<input type="text" id="otherPurpose" placeholder="Enter custom purpose" style="display:none;">
 
-  <label>Transaction Flow</label>
+<label>Transaction Flow</label>
+<div class="radio-group">
   <label><input type="radio" name="flow_type" value="deposit" required> Deposit</label>
   <label><input type="radio" name="flow_type" value="withdraw"> Withdraw</label>
+</div>
 
-  <label>Transaction Type</label>
-  <select id="trtype" required>
-    <option value="">Select</option>
-    <option value="cash">Cash</option>
-    <option value="upi">UPI</option>
-  </select>
+<label>Transaction Type</label>
+<select id="trtype" required>
+<option value="">Select</option>
+<option value="cash">Cash</option>
+<option value="upi">UPI</option>
+<option value="net">Net Banking</option>
+<option value="debit">Debit</option>
+<option value="credit">Credit</option>
+</select>
 
-  <label id="fromToLabel" style="display:none;">From / To</label>
-  <select id="from_to" style="display:none;">
-    <option value="">Select</option>
-    <option value="Axis">Axis</option>
-  </select>
+<label id="fromToLabel" style="display:none;">From / To</label>
+<select id="from_to" style="display:none;"></select>
 
-  <div id="denominationsBox" style="display:none;">
-    <label>Cash Denominations</label>
-    <div id="denominations"></div>
-  </div>
+<label>Amount</label>
+<input type="number" id="amount" required>
 
-  <label>Amount</label>
-  <input type="number" id="amount" required>
+<!-- 🔹 DENOMINATIONS -->
+<label>Cash Denominations</label>
+<div class="denoms">
+  <input type="number" id="d1" placeholder="₹1">
+  <input type="number" id="d2" placeholder="₹2">
+  <input type="number" id="d5" placeholder="₹5">
+  <input type="number" id="d10" placeholder="₹10">
+  <input type="number" id="d20" placeholder="₹20">
+  <input type="number" id="d50" placeholder="₹50">
+  <input type="number" id="d100" placeholder="₹100">
+  <input type="number" id="d200" placeholder="₹200">
+  <input type="number" id="d500" placeholder="₹500">
+</div>
 
-  <button type="submit">Submit</button>
+<button type="submit">Submit</button>
 </form>
 
 <script>
-const denominations = [500,200,100,50,20,10,5,2,1];
+const trtype = document.getElementById("trtype");
+const fromTo = document.getElementById("from_to");
+const fromToLabel = document.getElementById("fromToLabel");
+const purposeSelect = document.getElementById("Purpose");
+const otherPurposeInput = document.getElementById("otherPurpose");
 
-document.getElementById("Purpose").addEventListener("change", e => {
-  document.getElementById("otherPurpose").style.display =
-    e.target.value === "Other" ? "block" : "none";
-});
+const bankAccounts = ["Axis","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
+const creditCards = ["Axis Flipkart","HDFC Millennia","ICICI Amazon","SBI BPCL"];
 
-document.getElementById("trtype").addEventListener("change", e => {
-  const cash = e.target.value === "cash";
-  document.getElementById("denominationsBox").style.display = cash ? "block" : "none";
-  document.getElementById("from_to").style.display = cash ? "none" : "block";
-  document.getElementById("fromToLabel").style.display = cash ? "none" : "block";
-  document.getElementById("amount").readOnly = cash;
-
-  if (cash) {
-    const box = document.getElementById("denominations");
-    box.innerHTML = "";
-    denominations.forEach(d => {
-      box.innerHTML += `
-        <div class="denom-row">
-          <label>${d}</label>
-          <input type="number" value="0" data-denom="${d}">
-        </div>`;
-    });
+purposeSelect.addEventListener("change", () => {
+  if (purposeSelect.value === "Other") {
+    otherPurposeInput.style.display = "block";
+    otherPurposeInput.required = true;
+  } else {
+    otherPurposeInput.style.display = "none";
+    otherPurposeInput.required = false;
+    otherPurposeInput.value = "";
   }
 });
 
-document.addEventListener("input", e => {
-  if (e.target.closest("#denominations")) {
-    let total = 0;
-    document.querySelectorAll("#denominations input").forEach(i => {
-      total += Number(i.dataset.denom) * (Number(i.value) || 0);
-    });
-    document.getElementById("amount").value = total;
+trtype.addEventListener("change", () => {
+  fromTo.innerHTML = "";
+  if (trtype.value === "cash") {
+    fromTo.style.display = "none";
+    fromToLabel.style.display = "none";
+    fromTo.required = false;
+    return;
   }
+
+  fromTo.style.display = "block";
+  fromToLabel.style.display = "block";
+  fromTo.required = true;
+
+  let options = [];
+  if (["upi","net","debit"].includes(trtype.value)) options = bankAccounts;
+  if (trtype.value === "credit") options = creditCards;
+
+  fromTo.innerHTML = `<option value="">Select</option>`;
+  options.forEach(v => fromTo.innerHTML += `<option>${v}</option>`);
 });
 
-document.getElementById("expenseForm").addEventListener("submit", async e => {
+document.getElementById("expenseForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const cashDenoms = {};
-  document.querySelectorAll("#denominations input").forEach(i => {
-    cashDenoms[i.dataset.denom] = Number(i.value) || 0;
-  });
-
-  const payload = {
-    category: "monthly_expense",
-    source: "expense_form",
-    date: document.getElementById("date").value,
-    narration: document.getElementById("narration").value,
-    purpose:
-      document.getElementById("Purpose").value === "Other"
-        ? document.getElementById("otherPurpose").value
-        : document.getElementById("Purpose").value,
-    flow_type: document.querySelector('input[name="flow_type"]:checked').value,
-    trtype: document.getElementById("trtype").value,
-    from_to:
-      document.getElementById("trtype").value === "cash"
-        ? "Cash"
-        : document.getElementById("from_to").value,
-    amount: Number(document.getElementById("amount").value),
-    cash_denominations:
-      document.getElementById("trtype").value === "cash"
-        ? cashDenoms
-        : null
+  const denominations = {
+    "1": document.getElementById("d1").value || 0,
+    "2": document.getElementById("d2").value || 0,
+    "5": document.getElementById("d5").value || 0,
+    "10": document.getElementById("d10").value || 0,
+    "20": document.getElementById("d20").value || 0,
+    "50": document.getElementById("d50").value || 0,
+    "100": document.getElementById("d100").value || 0,
+    "200": document.getElementById("d200").value || 0,
+    "500": document.getElementById("d500").value || 0
   };
 
-  console.log("🚀 Sending payload:", payload);
+  const data = {
+    category: "monthly_expense",   // ✅ webhook identifier
+    date: date.value,
+    narration: narration.value,
+    purpose: purposeSelect.value === "Other" ? otherPurposeInput.value : purposeSelect.value,
+    flow_type: document.querySelector('input[name="flow_type"]:checked').value,
+    trtype: trtype.value,
+    from_to: trtype.value === "cash" ? "Cash" : fromTo.value,
+    amount: amount.value,
+    denominations: denominations
+  };
 
-  try {
-    const res = await fetch("https://hook.eu1.make.com/uayw6m2h1u56gz1fuhnyewvh860q8tjy", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  await fetch("https://hook.eu1.make.com/uayw6m2h1u56gz1fuhnyewvh860q8tjy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
 
-    alert("Sent! HTTP status: " + res.status);
-  } catch (err) {
-    alert("❌ Fetch failed. Check console.");
-    console.error(err);
-  }
+  alert("✅ Transaction saved");
+  expenseForm.reset();
+  fromTo.style.display = "none";
+  fromToLabel.style.display = "none";
+  otherPurposeInput.style.display = "none";
 });
 </script>
 
