@@ -6,67 +6,153 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-    form {
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 420px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    label {
-      font-weight: bold;
-      margin-top: 10px;
-      display: block;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-    }
-    .radio-group {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 10px;
-    }
-    .radio-group label {
-      font-weight: normal;
-    }
-    button {
-      margin-top: 15px;
-      background: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-
-    /* Denominations */
-    #denominations {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px 12px;
-      margin-top: 5px;
-    }
-    .denom-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .denom-row label {
-      width: 45px;
-      font-weight: bold;
-    }
+    body { font-family: Arial, sans-serif; background:#f5f5f5; padding:20px; }
+    form { background:#fff; padding:20px; border-radius:8px; max-width:420px; margin:auto; }
+    label { font-weight:bold; margin-top:10px; display:block; }
+    input, select, button { width:100%; padding:8px; margin-top:5px; }
+    button { background:#007bff; color:#fff; border:none; margin-top:15px; }
+    #denominations { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .denom-row { display:flex; gap:6px; align-items:center; }
+    .denom-row label { width:40px; }
   </style>
 </head>
+
+<body>
+
+<form id="expenseForm">
+  <h2>Transaction Entry</h2>
+
+  <label>Date</label>
+  <input type="date" id="date" required>
+
+  <label>Narration</label>
+  <input type="text" id="narration" required>
+
+  <label>Purpose</label>
+  <select id="Purpose" required>
+    <option value="">Select</option>
+    <option value="Food">Food</option>
+    <option value="Grocery">Grocery</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <input type="text" id="otherPurpose" placeholder="Other purpose" style="display:none;">
+
+  <label>Transaction Flow</label>
+  <label><input type="radio" name="flow_type" value="deposit" required> Deposit</label>
+  <label><input type="radio" name="flow_type" value="withdraw"> Withdraw</label>
+
+  <label>Transaction Type</label>
+  <select id="trtype" required>
+    <option value="">Select</option>
+    <option value="cash">Cash</option>
+    <option value="upi">UPI</option>
+  </select>
+
+  <label id="fromToLabel" style="display:none;">From / To</label>
+  <select id="from_to" style="display:none;">
+    <option value="">Select</option>
+    <option value="Axis">Axis</option>
+  </select>
+
+  <div id="denominationsBox" style="display:none;">
+    <label>Cash Denominations</label>
+    <div id="denominations"></div>
+  </div>
+
+  <label>Amount</label>
+  <input type="number" id="amount" required>
+
+  <button type="submit">Submit</button>
+</form>
+
+<script>
+const denominations = [500,200,100,50,20,10,5,2,1];
+
+document.getElementById("Purpose").addEventListener("change", e => {
+  document.getElementById("otherPurpose").style.display =
+    e.target.value === "Other" ? "block" : "none";
+});
+
+document.getElementById("trtype").addEventListener("change", e => {
+  const cash = e.target.value === "cash";
+  document.getElementById("denominationsBox").style.display = cash ? "block" : "none";
+  document.getElementById("from_to").style.display = cash ? "none" : "block";
+  document.getElementById("fromToLabel").style.display = cash ? "none" : "block";
+  document.getElementById("amount").readOnly = cash;
+
+  if (cash) {
+    const box = document.getElementById("denominations");
+    box.innerHTML = "";
+    denominations.forEach(d => {
+      box.innerHTML += `
+        <div class="denom-row">
+          <label>${d}</label>
+          <input type="number" value="0" data-denom="${d}">
+        </div>`;
+    });
+  }
+});
+
+document.addEventListener("input", e => {
+  if (e.target.closest("#denominations")) {
+    let total = 0;
+    document.querySelectorAll("#denominations input").forEach(i => {
+      total += Number(i.dataset.denom) * (Number(i.value) || 0);
+    });
+    document.getElementById("amount").value = total;
+  }
+});
+
+document.getElementById("expenseForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const cashDenoms = {};
+  document.querySelectorAll("#denominations input").forEach(i => {
+    cashDenoms[i.dataset.denom] = Number(i.value) || 0;
+  });
+
+  const payload = {
+    category: "monthly_expense",
+    source: "expense_form",
+    date: document.getElementById("date").value,
+    narration: document.getElementById("narration").value,
+    purpose:
+      document.getElementById("Purpose").value === "Other"
+        ? document.getElementById("otherPurpose").value
+        : document.getElementById("Purpose").value,
+    flow_type: document.querySelector('input[name="flow_type"]:checked').value,
+    trtype: document.getElementById("trtype").value,
+    from_to:
+      document.getElementById("trtype").value === "cash"
+        ? "Cash"
+        : document.getElementById("from_to").value,
+    amount: Number(document.getElementById("amount").value),
+    cash_denominations:
+      document.getElementById("trtype").value === "cash"
+        ? cashDenoms
+        : null
+  };
+
+  console.log("🚀 Sending payload:", payload);
+
+  try {
+    const res = await fetch("PASTE_YOUR_MAKE_WEBHOOK_URL_HERE", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    alert("Sent! HTTP status: " + res.status);
+  } catch (err) {
+    alert("❌ Fetch failed. Check console.");
+    console.error(err);
+  }
+});
+</script>
+
+</body>
+</html></head>
 
 <body>
 
