@@ -34,8 +34,10 @@
     justify-content: space-around;
     margin-top: 10px;
   }
-  .radio-group label {
-    font-weight: normal;
+  .denoms {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
   button {
     margin-top: 15px;
@@ -43,15 +45,6 @@
     color: white;
     border: none;
     cursor: pointer;
-    font-size: 16px;
-  }
-  button:hover {
-    background: #0056b3;
-  }
-  .denoms {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
   }
 </style>
 </head>
@@ -66,18 +59,6 @@
 
 <label>Narration</label>
 <input type="text" id="narration" required>
-
-<label>Purpose</label>
-<select id="Purpose" required>
-  <option value="">Select</option>
-  <option>Food</option>
-  <option>Grocery</option>
-  <option>Income</option>
-  <option>Utility Bills</option>
-  <option>Other</option>
-</select>
-
-<input type="text" id="otherPurpose" placeholder="Enter custom purpose" style="display:none;">
 
 <label>Transaction Flow</label>
 <div class="radio-group">
@@ -95,24 +76,20 @@
   <option value="credit">Credit</option>
 </select>
 
-<label id="fromToLabel" style="display:none;">From / To</label>
-<select id="from_to" style="display:none;"></select>
-
 <label>Amount</label>
 <input type="number" id="amount" required>
 
-<!-- 🔹 DENOMINATIONS -->
 <label>Cash Denominations</label>
 <div class="denoms">
-  <input type="number" class="denom" id="d1" placeholder="₹1" disabled>
-  <input type="number" class="denom" id="d2" placeholder="₹2" disabled>
-  <input type="number" class="denom" id="d5" placeholder="₹5" disabled>
-  <input type="number" class="denom" id="d10" placeholder="₹10" disabled>
-  <input type="number" class="denom" id="d20" placeholder="₹20" disabled>
-  <input type="number" class="denom" id="d50" placeholder="₹50" disabled>
-  <input type="number" class="denom" id="d100" placeholder="₹100" disabled>
-  <input type="number" class="denom" id="d200" placeholder="₹200" disabled>
-  <input type="number" class="denom" id="d500" placeholder="₹500" disabled>
+  <input type="number" class="denom" data-val="1"   placeholder="₹1" disabled>
+  <input type="number" class="denom" data-val="2"   placeholder="₹2" disabled>
+  <input type="number" class="denom" data-val="5"   placeholder="₹5" disabled>
+  <input type="number" class="denom" data-val="10"  placeholder="₹10" disabled>
+  <input type="number" class="denom" data-val="20"  placeholder="₹20" disabled>
+  <input type="number" class="denom" data-val="50"  placeholder="₹50" disabled>
+  <input type="number" class="denom" data-val="100" placeholder="₹100" disabled>
+  <input type="number" class="denom" data-val="200" placeholder="₹200" disabled>
+  <input type="number" class="denom" data-val="500" placeholder="₹500" disabled>
 </div>
 
 <button type="submit">Submit</button>
@@ -120,78 +97,62 @@
 
 <script>
 const trtype = document.getElementById("trtype");
-const fromTo = document.getElementById("from_to");
-const fromToLabel = document.getElementById("fromToLabel");
-const purposeSelect = document.getElementById("Purpose");
-const otherPurposeInput = document.getElementById("otherPurpose");
+const amountInput = document.getElementById("amount");
 const denomInputs = document.querySelectorAll(".denom");
 
-const bankAccounts = ["Axis","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
-const creditCards = ["Axis Flipkart","HDFC Millennia","ICICI Amazon","SBI BPCL"];
+/* 🔢 Calculate amount from denominations */
+function calculateAmount() {
+  let total = 0;
+  denomInputs.forEach(input => {
+    const qty = Number(input.value) || 0;
+    const val = Number(input.dataset.val);
+    total += qty * val;
+  });
+  amountInput.value = total;
+}
 
-purposeSelect.addEventListener("change", () => {
-  if (purposeSelect.value === "Other") {
-    otherPurposeInput.style.display = "block";
-    otherPurposeInput.required = true;
-  } else {
-    otherPurposeInput.style.display = "none";
-    otherPurposeInput.required = false;
-    otherPurposeInput.value = "";
-  }
-});
-
+/* 🔄 Enable/Disable based on transaction type */
 trtype.addEventListener("change", () => {
-  fromTo.innerHTML = "";
 
-  /* 🔹 CASH → enable denominations */
   if (trtype.value === "cash") {
-    denomInputs.forEach(i => i.disabled = false);
-    fromTo.style.display = "none";
-    fromToLabel.style.display = "none";
+    // Enable denominations
+    denomInputs.forEach(i => {
+      i.disabled = false;
+      i.addEventListener("input", calculateAmount);
+    });
+
+    // Disable manual amount
+    amountInput.value = 0;
+    amountInput.disabled = true;
     return;
   }
 
-  /* 🔹 NON-CASH → disable & reset denominations */
+  // Non-cash → disable denominations
   denomInputs.forEach(i => {
     i.disabled = true;
     i.value = "";
   });
 
-  fromTo.style.display = "block";
-  fromToLabel.style.display = "block";
-
-  let options = [];
-  if (["upi","net","debit"].includes(trtype.value)) options = bankAccounts;
-  if (trtype.value === "credit") options = creditCards;
-
-  fromTo.innerHTML = `<option value="">Select</option>`;
-  options.forEach(v => fromTo.innerHTML += `<option>${v}</option>`);
+  amountInput.disabled = false;
+  amountInput.value = "";
 });
 
+/* 🚀 Submit */
 document.getElementById("expenseForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const denominations = {
-    "1": d1.value || 0,
-    "2": d2.value || 0,
-    "5": d5.value || 0,
-    "10": d10.value || 0,
-    "20": d20.value || 0,
-    "50": d50.value || 0,
-    "100": d100.value || 0,
-    "200": d200.value || 0,
-    "500": d500.value || 0
-  };
+  const denominations = {};
+  denomInputs.forEach(i => {
+    denominations[i.dataset.val] = i.value || 0;
+  });
 
   const data = {
     category: "monthly_expense",
     date: date.value,
     narration: narration.value,
-    purpose: purposeSelect.value === "Other" ? otherPurposeInput.value : purposeSelect.value,
     flow_type: document.querySelector('input[name="flow_type"]:checked').value,
     trtype: trtype.value,
-    from_to: trtype.value === "cash" ? "Cash" : fromTo.value,
-    amount: amount.value,
+    amount: amountInput.value,
     denominations
   };
 
@@ -203,6 +164,7 @@ document.getElementById("expenseForm").addEventListener("submit", async (e) => {
 
   alert("✅ Transaction saved");
   expenseForm.reset();
+  amountInput.disabled = false;
 });
 </script>
 
