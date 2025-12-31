@@ -11,6 +11,7 @@
     background: #f5f5f5;
     padding: 20px;
   }
+
   form {
     background: #ffffff;
     padding: 20px;
@@ -19,32 +20,58 @@
     margin: auto;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
   }
+
   label {
     font-weight: bold;
     margin-top: 10px;
     display: block;
   }
-  input, select, button {
+
+  input,
+  select,
+  button {
     width: 100%;
-    padding: 8px;
+    height: 42px;
+    padding: 8px 10px;
     margin-top: 5px;
+    box-sizing: border-box;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
   }
+
+  input:disabled,
+  select:disabled {
+    background-color: #f0f0f0;
+    color: #666;
+    cursor: not-allowed;
+  }
+
   .radio-group {
     display: flex;
     justify-content: space-around;
     margin-top: 10px;
   }
+
+  .radio-group input {
+    width: auto;
+    height: auto;
+  }
+
   .denoms {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
+
   button {
+    height: 44px;
     margin-top: 15px;
     background: #007bff;
     color: white;
     border: none;
     cursor: pointer;
+    font-size: 15px;
   }
 </style>
 </head>
@@ -103,21 +130,25 @@
 <label id="accountLabel" style="display:none;">From / To</label>
 <select id="from_to" style="display:none;"></select>
 
+<!-- 🔹 DENOMINATIONS -->
+<div id="denominationSection" style="display:none;">
+  <label>Cash Denominations</label>
+  <div class="denoms">
+    <input type="number" class="denom" data-val="1" placeholder="&#8377;1" disabled>
+    <input type="number" class="denom" data-val="2" placeholder="&#8377;2" disabled>
+    <input type="number" class="denom" data-val="5" placeholder="&#8377;5" disabled>
+    <input type="number" class="denom" data-val="10" placeholder="&#8377;10" disabled>
+    <input type="number" class="denom" data-val="20" placeholder="&#8377;20" disabled>
+    <input type="number" class="denom" data-val="50" placeholder="&#8377;50" disabled>
+    <input type="number" class="denom" data-val="100" placeholder="&#8377;100" disabled>
+    <input type="number" class="denom" data-val="200" placeholder="&#8377;200" disabled>
+    <input type="number" class="denom" data-val="500" placeholder="&#8377;500" disabled>
+  </div>
+</div>
+
+<!-- 🔹 AMOUNT AT BOTTOM -->
 <label>Amount</label>
 <input type="number" id="amount" required>
-
-<label>Cash Denominations</label>
-<div class="denoms">
-  <input type="number" class="denom" data-val="1" placeholder="₹1" disabled>
-  <input type="number" class="denom" data-val="2" placeholder="₹2" disabled>
-  <input type="number" class="denom" data-val="5" placeholder="₹5" disabled>
-  <input type="number" class="denom" data-val="10" placeholder="₹10" disabled>
-  <input type="number" class="denom" data-val="20" placeholder="₹20" disabled>
-  <input type="number" class="denom" data-val="50" placeholder="₹50" disabled>
-  <input type="number" class="denom" data-val="100" placeholder="₹100" disabled>
-  <input type="number" class="denom" data-val="200" placeholder="₹200" disabled>
-  <input type="number" class="denom" data-val="500" placeholder="₹500" disabled>
-</div>
 
 <button type="submit">Submit</button>
 </form>
@@ -126,24 +157,21 @@
 const trtype = document.getElementById("trtype");
 const amountInput = document.getElementById("amount");
 const denomInputs = document.querySelectorAll(".denom");
+const denominationSection = document.getElementById("denominationSection");
 const purposeSelect = document.getElementById("purpose");
 const otherPurpose = document.getElementById("otherPurpose");
 const fromTo = document.getElementById("from_to");
 const accountLabel = document.getElementById("accountLabel");
 
-const bankAccounts = [
-  "Axis", "HDFC Old", "HDFC New", "ICICI",
-  "IndusInd", "Kotak", "RBL", "SBI"
-];
-
+const bankAccounts = ["Axis","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
 const creditCards = [
-  "Axis Flipkart", "Axis MyZone", "Axis Neo",
-  "HDFC PhonePe", "HDFC Tata Neu", "HDFC Millennia",
-  "HSBC", "IDFC First Millenia",
-  "ICICI Amazon", "ICICI Coral", "ICICI Expressions",
-  "Indusind Plat Aura EDGE", "Indusind Legend",
-  "Yes Finbooster", "Kotak League", "Kotak Image",
-  "SBI BPCL", "Standard Chartered"
+  "Axis Flipkart","Axis MyZone","Axis Neo",
+  "HDFC PhonePe","HDFC Tata Neu","HDFC Millennia",
+  "HSBC","IDFC First Millenia",
+  "ICICI Amazon","ICICI Coral","ICICI Expressions",
+  "Indusind Plat Aura EDGE","Indusind Legend",
+  "Yes Finbooster","Kotak League","Kotak Image",
+  "SBI BPCL","Standard Chartered"
 ];
 
 /* Purpose → Other */
@@ -172,6 +200,7 @@ trtype.addEventListener("change", () => {
   fromTo.innerHTML = "";
 
   if (trtype.value === "cash") {
+    denominationSection.style.display = "block";
     accountLabel.style.display = "none";
     fromTo.style.display = "none";
     fromTo.required = false;
@@ -186,6 +215,7 @@ trtype.addEventListener("change", () => {
     return;
   }
 
+  denominationSection.style.display = "none";
   denomInputs.forEach(i => {
     i.disabled = true;
     i.value = "";
@@ -199,7 +229,7 @@ trtype.addEventListener("change", () => {
   fromTo.required = true;
 
   let options = [];
-  if (["upi", "net", "debit"].includes(trtype.value)) options = bankAccounts;
+  if (["upi","net","debit"].includes(trtype.value)) options = bankAccounts;
   if (trtype.value === "credit") options = creditCards;
 
   fromTo.innerHTML = `<option value="">Select</option>`;
@@ -231,12 +261,13 @@ document.getElementById("expenseForm").addEventListener("submit", async (e) => {
     body: JSON.stringify(data)
   });
 
-  alert("✅ Transaction saved");
+  alert("Transaction saved successfully");
   expenseForm.reset();
   amountInput.disabled = false;
   otherPurpose.style.display = "none";
   fromTo.style.display = "none";
   accountLabel.style.display = "none";
+  denominationSection.style.display = "none";
 });
 </script>
 
