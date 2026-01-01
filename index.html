@@ -36,11 +36,17 @@
     font-size: 14px;
     border-radius: 4px;
     border: 1px solid #ccc;
+    background-color: #ffffff;
+    color: #000;
   }
 
-  input:disabled {
-    background-color: #f0f0f0;
-    cursor: not-allowed;
+  /* 🔥 FORCE WHITE EVEN WHEN DISABLED */
+  input:disabled,
+  select:disabled {
+    background-color: #ffffff !important;
+    color: #000 !important;
+    opacity: 1;
+    cursor: default;
   }
 
   .radio-group {
@@ -68,6 +74,10 @@
     border: none;
     cursor: pointer;
     font-size: 15px;
+  }
+
+  button:hover {
+    background: #0056b3;
   }
 </style>
 </head>
@@ -144,10 +154,8 @@
 <label id="accountLabel" style="display:none;">From / To</label>
 <select id="from_to" style="display:none;"></select>
 
-<!-- Rewards Other -->
 <input type="text" id="otherReward" placeholder="Enter reward source" style="display:none;">
 
-<!-- Cash Denominations -->
 <div id="denominationSection" style="display:none;">
   <label>Cash Denominations</label>
   <div class="denoms">
@@ -194,26 +202,22 @@ const creditCards = [
 ];
 const rewardsApps = ["PhonePe","Amazon","Flipkart","Other"];
 
-/* Purpose */
 purposeSelect.addEventListener("change", () => {
   otherPurpose.style.display = purposeSelect.value === "Other" ? "block" : "none";
   otherPurpose.required = purposeSelect.value === "Other";
 });
 
-/* Spent For */
 spentFor.addEventListener("change", () => {
   otherSpentFor.style.display = spentFor.value === "Other" ? "block" : "none";
   otherSpentFor.required = spentFor.value === "Other";
 });
 
-/* Cash Calculation */
 function calculateAmount() {
   let total = 0;
   denomInputs.forEach(i => total += (Number(i.value) || 0) * Number(i.dataset.val));
   amountInput.value = total;
 }
 
-/* Transaction Type */
 trtype.addEventListener("change", () => {
   fromTo.innerHTML = "";
   otherReward.style.display = "none";
@@ -251,7 +255,6 @@ trtype.addEventListener("change", () => {
   options.forEach(v => fromTo.innerHTML += `<option>${v}</option>`);
 });
 
-/* Rewards → Other */
 fromTo.addEventListener("change", () => {
   if (trtype.value === "REWARDS" && fromTo.value === "Other") {
     otherReward.style.display = "block";
@@ -263,7 +266,6 @@ fromTo.addEventListener("change", () => {
   }
 });
 
-/* Submit */
 document.getElementById("expenseForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
