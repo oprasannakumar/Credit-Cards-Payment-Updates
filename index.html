@@ -27,7 +27,11 @@
     display: block;
   }
 
-  input, select, button {
+  /* 🔥 SAME SIZE FOR ALL BOXES */
+  input,
+  select,
+  textarea,
+  button {
     width: 100%;
     height: 42px;
     padding: 8px 10px;
@@ -40,13 +44,21 @@
     color: #000;
   }
 
-  /* 🔥 FORCE WHITE EVEN WHEN DISABLED */
+  textarea {
+    resize: none;
+    line-height: 24px;
+  }
+
+  /* 🔥 GREY ONLY FOR CASH AMOUNT */
+  .cash-grey {
+    background-color: #f0f0f0 !important;
+  }
+
+  /* Keep disabled/selects white */
   input:disabled,
   select:disabled {
     background-color: #ffffff !important;
-    color: #000 !important;
     opacity: 1;
-    cursor: default;
   }
 
   .radio-group {
@@ -202,22 +214,28 @@ const creditCards = [
 ];
 const rewardsApps = ["PhonePe","Amazon","Flipkart","Other"];
 
+/* Purpose */
 purposeSelect.addEventListener("change", () => {
   otherPurpose.style.display = purposeSelect.value === "Other" ? "block" : "none";
   otherPurpose.required = purposeSelect.value === "Other";
 });
 
+/* Spent For */
 spentFor.addEventListener("change", () => {
   otherSpentFor.style.display = spentFor.value === "Other" ? "block" : "none";
   otherSpentFor.required = spentFor.value === "Other";
 });
 
+/* Cash amount calculation */
 function calculateAmount() {
   let total = 0;
-  denomInputs.forEach(i => total += (Number(i.value) || 0) * Number(i.dataset.val));
+  denomInputs.forEach(i => {
+    total += (Number(i.value) || 0) * Number(i.dataset.val);
+  });
   amountInput.value = total;
 }
 
+/* Transaction Type */
 trtype.addEventListener("change", () => {
   fromTo.innerHTML = "";
   otherReward.style.display = "none";
@@ -227,7 +245,9 @@ trtype.addEventListener("change", () => {
     denominationSection.style.display = "block";
     accountLabel.style.display = "none";
     fromTo.style.display = "none";
-    amountInput.disabled = true;
+
+    amountInput.readOnly = true;
+    amountInput.classList.add("cash-grey");
     amountInput.value = 0;
 
     denomInputs.forEach(i => {
@@ -238,8 +258,13 @@ trtype.addEventListener("change", () => {
   }
 
   denominationSection.style.display = "none";
-  denomInputs.forEach(i => { i.disabled = true; i.value = ""; });
-  amountInput.disabled = false;
+  denomInputs.forEach(i => {
+    i.disabled = true;
+    i.value = "";
+  });
+
+  amountInput.readOnly = false;
+  amountInput.classList.remove("cash-grey");
   amountInput.value = "";
 
   accountLabel.style.display = "block";
@@ -255,6 +280,7 @@ trtype.addEventListener("change", () => {
   options.forEach(v => fromTo.innerHTML += `<option>${v}</option>`);
 });
 
+/* Rewards → Other */
 fromTo.addEventListener("change", () => {
   if (trtype.value === "REWARDS" && fromTo.value === "Other") {
     otherReward.style.display = "block";
@@ -266,7 +292,8 @@ fromTo.addEventListener("change", () => {
   }
 });
 
-document.getElementById("expenseForm").addEventListener("submit", async (e) => {
+/* Submit */
+document.getElementById("expenseForm").addEventListener("submit", async e => {
   e.preventDefault();
 
   const denominations = {};
@@ -298,7 +325,9 @@ document.getElementById("expenseForm").addEventListener("submit", async (e) => {
 
   alert("Transaction saved successfully");
   expenseForm.reset();
-  amountInput.disabled = false;
+
+  amountInput.readOnly = false;
+  amountInput.classList.remove("cash-grey");
   denominationSection.style.display = "none";
   fromTo.style.display = "none";
   accountLabel.style.display = "none";
