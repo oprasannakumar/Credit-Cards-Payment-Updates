@@ -1,74 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Monthly Transaction</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Monthly Transaction | Smart Row Sync</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    :root { 
+      --h:42px; --r:10px; --primary: #22c55e; --secondary: #3b82f6; --danger: #ef4444; 
+      --bg-body: linear-gradient(135deg,#eef2f7,#f9fafb);
+      --bg-card: #ffffff; --text-main: #1f2937; --text-label: #374151; --border-color: #d1d5db; --bg-input: #ffffff;
+    }
+    body.dark {
+      --bg-body: #020617; --bg-card: #0f172a; --text-main: #f8fafc; --text-label: #94a3b8; --border-color: #334155; --bg-input: #1e293b;
+    }
+    body { 
+      font-family:'Inter', sans-serif; 
+      background: var(--bg-body); 
+      color: var(--text-main); 
+      padding:15px; margin:0; 
+      min-height: 100vh; 
+      transition: background 0.5s ease, color 0.5s ease; 
+    }
+    
+    form, .confirm-card { 
+      background: var(--bg-card); 
+      max-width:400px; margin:auto; padding:20px; border-radius:16px; 
+      box-shadow:0 10px 30px rgba(0,0,0,.1); border: 1px solid var(--border-color); 
+      position: relative; 
+      transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+    }
+    
+    .confirm-card { max-width: 550px; width: 70%; } 
 
-<style>
-body{font-family:Arial;background:#f5f5f5;padding:20px}
-form{position:relative;background:#fff;padding:20px;border-radius:8px;max-width:420px;margin:auto;box-shadow:0 0 10px rgba(0,0,0,.1)}
-label{font-weight:bold;margin-top:10px;display:block}
-input,select,textarea,button{
-  width:100%;height:42px;padding:8px 10px;margin-top:5px;
-  border-radius:4px;border:1px solid #ccc;box-sizing:border-box;background:#fff
+    /* HEADER CENTERING LOGIC */
+    .header-row-top { 
+      display: grid; 
+      grid-template-columns: 40px 1fr 80px; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      margin-top: -5px; 
+    }
+
+    h3 { 
+      margin: 0; 
+      font-weight: 600; 
+      font-size: 18px; 
+      text-align: center; 
+      grid-column: 1 / -1; 
+      grid-row: 1;
+      z-index: 1;
+    }
+
+    #statusDot { 
+      grid-column: 1; 
+      grid-row: 1; 
+      z-index: 2; 
+      width: 10px; 
+      height: 10px; 
+      border-radius: 50%; 
+      background: #94a3b8; 
+      justify-self: start;
+    }
+    
+    .right-btns {
+      grid-column: 3;
+      grid-row: 1;
+      z-index: 2;
+      display: flex;
+      gap: 8px;
+      justify-self: end;
+    }
+
+    #statusDot.online { background: var(--primary); box-shadow: 0 0 8px var(--secondary); }
+    #statusDot.offline { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+    #themeToggle, #fabToggle { 
+      width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); 
+      background: var(--bg-input); color: var(--text-main); cursor: pointer; 
+      display: flex; align-items: center; justify-content: center; font-size: 14px; 
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+      flex-shrink: 0;
+    }
+
+    .theme-rotate { transform: rotate(360deg); }
+
+    .nav-fab-container { position: relative; }
+    .nav-options { 
+      position: absolute; right: 0; top: 40px; 
+      display: flex; flex-direction: column; gap: 8px; 
+      opacity: 0; transform: translateY(-10px); pointer-events: none; 
+      transition: 0.2s ease-out; z-index: 10001; 
+    }
+    .nav-fab-container.active .nav-options { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .nav-item { 
+      background: var(--bg-card); color: var(--text-main); padding: 8px 14px; 
+      border-radius: 10px; font-size: 12px; font-weight: 600; text-decoration: none; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid var(--border-color); 
+      white-space: nowrap; text-align: right;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+    .nav-item:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+    #btnShowAutofill { 
+      background: rgba(16, 185, 129, 0.1); color: var(--primary); border: 1px dashed var(--primary);
+      font-size: 11px; font-weight: 700; height: 32px; margin-bottom: 10px; cursor: pointer;margin-top:-10px;}
+
+    .autofill-section { background: rgba(16, 185, 129, 0.05); padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--secondary); }
+    .autofill-section textarea { width: 100%; height: 60px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 11px; padding: 8px; box-sizing: border-box; resize: none; background: var(--bg-input); color: var(--text-main); transition: background 0.5s ease; }
+    .btn-autofill { background: var(--secondary); color: white; border: none; font-size: 11px; font-weight: 700; height: 30px; border-radius: 6px; cursor: pointer; margin-top: 0px; width: 100%; }
+
+    .batch-control { display: flex; align-items: center; justify-content: space-between; background: rgba(99,102,241,0.1); padding: 8px 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--primary); margin-top:5px;}
+    
+    .switch { position: relative; display: inline-block; width: 40px; height: 22px; margin-top:0px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+    
+    .slider:before { 
+      position: absolute; content: ""; 
+      height: 16px; width: 16px; 
+      left: 3px; bottom: 3px; 
+      background-color: white; transition: .4s; border-radius: 50%; 
+    }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(18px); }
+
+    label { font-size:12px; font-weight:600; margin-top:12px; display:block; color: var(--text-label); transition: color 0.5s ease; }
+    input, select, button { width:100%; height:var(--h); margin-top:5px; padding:0 10px; border-radius:var(--r); border:1px solid var(--border-color); box-sizing:border-box; font-size:13px; background: var(--bg-input); color: var(--text-main); transition: all 0.5s ease; }
+    input:focus, select:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
+    
+    .err-msg { color: var(--danger); font-size: 10px; margin-top: 4px; display: none; font-weight: 600; }
+    form.was-validated :invalid ~ .err-msg, .is-invalid ~ .err-msg { display: block; }
+    form.was-validated input:invalid, form.was-validated select:invalid, .is-invalid { border-color: var(--danger) !important; background: rgba(239, 68, 68, 0.03); }
+
+    .smart-row { display: block; width: 100%; }
+    .smart-row.has-other { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; }
+
+    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px; }
+    button[type="submit"], .btn-confirm { background: var(--primary); color: #fff; border: none; font-weight: 700; cursor: pointer; letter-spacing: 0.3px; transition: filter 0.2s; }
+    button[type="submit"]:hover, .btn-confirm:hover { filter: brightness(1.1); }
+    
+    #btnRepeat, .btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border-color); font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+    .sync-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px; }
+    
+    #btnSyncAll, #btnStopSync, #btnViewQueue { 
+        height: 42px; margin: 0; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; border: none;
+    }
+    
+    #btnSyncAll { background: var(--secondary); color: white; }
+   #btnStopSync { 
+  background: #ffffff; /* White background to contrast primary sync */
+  color: #ef4444;      /* Red text to indicate a stop/danger action */
+  border: 1.5px solid #ef4444; /* Red border */
+  height: 42px;
+  border-radius: 12px; /* Slightly more rounded for a modern feel */
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-textarea{resize:none}
-button{background:#007bff;color:#fff;border:none;margin-top:15px;height:44px}
-button:hover{background:#0056b3}
-.cash-grey{background:#f0f0f0!important}
+    #btnViewQueue { background: #94a3b8; color: white; }
+    body.dark #btnViewQueue { background: #475569; }
 
-/* Menu */
-.menu-container{position:absolute;top:12px;left:12px;padding:8px}
-.menu-btn{width:36px;height:36px;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.menu-dropdown{display:none;position:absolute;top:50px;left:0;background:#fff;border-radius:6px;min-width:230px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
-.menu-container:hover .menu-dropdown{display:block}
-.menu-dropdown a{display:block;padding:12px 14px;text-decoration:none;color:#000;border-bottom:1px solid #eee}
-.menu-dropdown a:hover{background:#f0f0f0}
+    .payment-row-wrapper { margin-bottom: 12px; border-bottom: 1px dashed var(--border-color); padding-bottom: 12px; }
+    .payment-row { display: grid; grid-template-columns: 0.9fr 1.1fr 75px 35px; gap: 6px; align-items: end; }
+    .btn-del-mode { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; height:var(--h); padding: 0; }
 
-/* Cash grid */
-#denominations{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.denom-row{border:1px solid #ccc;border-radius:6px;padding:10px;text-align:center;font-weight:bold}
-.denom-row input{margin-top:6px;height:36px;text-align:center}
+    .btn-add-mode { background: var(--secondary); color: #fff; border: none; font-size: 11px; height: 24px; cursor: pointer; border-radius: 6px; width: auto; padding: 0 10px; margin: 0; }
+    .total-wrapper { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 8px 12px; background: var(--bg-input); border-radius: 8px; border: 1px solid var(--border-color); transition: background 0.5s ease; }
+    
+    .cash-wrapper { border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-top:12px; background: var(--bg-input); transition: background 0.5s ease; }
+    .cash-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .cash-card { border:1px solid var(--border-color); border-radius:8px; padding:5px; text-align:center; background: var(--bg-card); transition: background 0.5s ease; }
+    .cash-card span { display:block; font-size: 10px; font-weight:600; color: var(--text-label); transition: color 0.5s ease; }
+    .cash-card input { width:50%; height:28px; text-align:center; margin-top: 2px; font-size: 11px; }
 
-/* Popup */
-.popup{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center}
-.popup-box{background:#fff;width:90%;max-width:380px;border-radius:8px;padding:20px}
-.popup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
-.popup-card{border:1px solid #ccc;border-radius:6px;padding:10px;text-align:center;font-weight:bold}
-.popup-actions{display:flex;gap:10px;margin-top:20px}
-.popup-actions button{flex:1}
-</style>
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
+    .modal-content { background: var(--bg-card); color: var(--text-main); width: 98%; max-width: 850px; max-height: 85vh; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; transition: background 0.5s ease; }
+    .table-container { overflow-x: auto; padding: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 900px; }
+    
+    th { text-align: center; padding: 10px; border-bottom: 2px solid var(--border-color); color: var(--text-label); transition: color 0.5s ease; }
+    td { padding: 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; transition: border-color 0.5s ease; }
+    
+    /* Target the first column (Date) in every table row */
+    table td:first-child, table th:first-child {
+      text-align: center; /* Aligned left for date reading */
+      padding-left: 5px; 
+      width: 70px; /* Width for format 1-Jan-2026 */
+    }
+/* Target the second column (Narration) in the table */
+table td:nth-child(2), table th:nth-child(2) {
+  text-align: center;width:200px; /* Options: left, center, right */
+  padding-left: 0px;/* Optional: adds a small gap from the border */
+}
+/* Target the fifth column (Narration) in the table */
+table td:nth-child(5), table th:nth-child(5) {
+  text-align: center;width:160px; /* Options: left, center, right */
+  padding-left: 0px;/* Optional: adds a small gap from the border */
+}
+/* Target the third column (Narration) in the table */
+table td:nth-child(3), table th:nth-child(5) {
+  text-align: center;width:120px; /* Options: left, center, right */
+  padding-left: 0px;/* Optional: adds a small gap from the border */
+}
+
+    .td-center { display: flex; justify-content: center; align-items: center; height: 100%; border-bottom: none !important; gap: 8px; }
+    .btn-action { height:25px; width:30px; background:transparent; border:none; cursor:pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+
+    .confirm-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; transition: border-color 0.5s ease; }
+    .confirm-label { font-weight: 600; color: var(--text-label); transition: color 0.5s ease; }
+    .confirm-val { color: var(--text-main); text-align: right; max-width: 60%; transition: color 0.5s ease; }
+    .confirm-section-title { font-size: 12px; font-weight: 700; color: var(--primary); margin: 15px 0 5px 0; border-bottom: 2px solid var(--primary); width: fit-content; padding-right: 10px; }
+
+    .confirm-matrix-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; background: var(--bg-input); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); transition: background 0.5s ease; }
+    .confirm-matrix-card { border:1px solid var(--border-color); border-radius:6px; padding:4px; text-align:center; background: var(--bg-card); display: flex; flex-direction: column; align-items: center; transition: background 0.5s ease; }
+    .confirm-matrix-card span { display:block; font-size: 9px; font-weight:700; color: var(--text-label); line-height: 1; transition: color 0.5s ease; }
+    .confirm-matrix-card strong { font-size: 11px; color: var(--text-main); margin-top: 2px; transition: color 0.5s ease; }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .saving-text { animation: blink 1s infinite; }
+    .hidden { display:none !important }
+    
+    .queue-denoms { display: block; font-size: 10px; color: #6366f1; margin-top: 4px; line-height: 1.4; text-align: center; width:160px;}
+  </style>
 </head>
 
 <body>
-
-<form id="form">
-
-<div class="menu-container">
-  <div class="menu-btn">⋮</div>
-  <div class="menu-dropdown">
-    <a href="https://oprasannakumar.github.io/Financial-Transaction/">Financial Entries</a>
-    <a href="https://oprasannakumar.github.io/SelfTransfer/">Self Transfer</a>
-    <a href="https://oprasannakumar.github.io/LoanTransfer/">Loan Entries</a>
+<form id="txnForm" novalidate>
+  <div class="header-row-top">
+    <div id="statusDot" title="Network Status"></div>
+    <h3>Monthly Transaction</h3>
+    
+    <div class="right-btns">
+      <div class="nav-fab-container" id="navFab">
+        <button type="button" id="fabToggle" title="Navigation">🔗</button>
+        <div class="nav-options">
+          <a href="https://oprasannakumar.github.io/LoanTransferGoogleSheets/" class="nav-item">🔄 Loan Entry</a>
+          <a href="https://oprasannakumar.github.io/Self-TransferGoogleScripts/" class="nav-item">🏦 Self Transfer</a>
+        </div>
+      </div>
+      <button type="button" id="themeToggle">🌙</button>
+    </div>
   </div>
-</div>
 
-<h2 style="text-align:center">Monthly Transaction</h2>
+  <button type="button" id="btnShowAutofill">✨ Use Receipt Auto-Fill</button>
 
-<label>Date</label>
-<input type="date" id="date">
+  <div id="autofillBlock" class="autofill-section hidden">
+    <textarea id="pasteArea" placeholder="Paste saved confirmation text here..."></textarea>
+    <button type="button" class="btn-autofill" id="btnApplyPaste">Apply Data & Close</button>
+  </div>
 
-<label>Narration</label>
-<input type="text" id="narration">
+  <div class="batch-control">
+    <span style="font-size: 12px; font-weight: 600;">Batch Mode</span>
+    <label class="switch">
+      <input type="checkbox" id="batchToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <label>Date</label>
+  <input type="date" id="date" required>
+  <div class="err-msg">Selection required</div>
+  
+  <label>Narration</label>
+  <input type="text" id="narration" required placeholder="Description">
+  <div class="err-msg">Description required</div>
 
-<label>Bill No (Optional)</label>
-<input type="text" id="billNo" placeholder="Enter bill number" step="0.01">
+  <label>Invoice No. (Optional)</label>
+  <input type="text" id="invoice_no" placeholder="Enter Invoice Number">
 
-<label>Purpose</label>
-<select id="purpose">
-  <option value="">Select</option>
-  <option>Business</option>
+  <div id="referenceWrapper" class="hidden">
+    <label>Reference</label>
+    <input type="text" id="reference" placeholder="Auto-filled Reference">
+  </div>
+  
+  <label>Purpose</label>
+  <div id="purposeSmartRow" class="smart-row">
+      <select id="purpose" required onchange="toggleSmartOther(this, 'purpose_other', 'purposeSmartRow')">
+        <option value="">Select</option>
+          <option>Business</option>
   <option>Donation</option>
   <option>Entertainment</option>
   <option>Food</option>
@@ -85,73 +300,109 @@ button:hover{background:#0056b3}
   <option>Travelling</option>
   <option>Utility Bills</option>
   <option>Water</option>
-  <option>Other</option>
-</select>
-<input id="purposeOther" placeholder="Enter purpose" style="display:none">
+  <option value="Other">Other</option>
+      </select>
+      <input id="purpose_other" class="hidden" placeholder="Specify Purpose" required disabled>
+      <div class="err-msg">Category required</div>
+  </div>
 
-<label>Spent For / Earned By</label>
-<select id="spentFor">
-  <option value="">Select</option>
-  <option>Self</option>
-  <option>House</option>
-  <option>Mother</option>
-  <option>Father</option>
-  <option>Family</option>
-  <option>Vasavi</option>
-  <option>Other</option>
-</select>
-<input id="spentOther" placeholder="Enter name" style="display:none">
+  <label>Spent For</label>
+  <div id="spentSmartRow" class="smart-row">
+      <select id="spent_for" required onchange="toggleSmartOther(this, 'spent_for_other', 'spentSmartRow')">
+        <option value="">Select</option>
+        <option>Self</option><option>House</option><option>Mother</option><option>Grand Father</option><option>Family</option><option>Pedhamma</option><option>Vasavi</option><option value="Other">Other</option>
+      </select>
+      <input id="spent_for_other" class="hidden" placeholder="Specify Name" required disabled>
+      <div class="err-msg">Entity required</div>
+  </div>
 
-<label>Transaction Flow</label>
-<select id="flow_type">
-  <option value="">Select</option>
-  <option value="withdraw">Withdraw</option>
-  <option value="deposit">Deposit</option>
-</select>
+  <label>Flow</label>
+  <select id="flow" required>
+    <option value="">Select</option>
+    <option value="withdraw">Withdraw</option>
+    <option value="deposit">Deposit</option>
+  </select>
+  <div class="err-msg">Flow required</div>
 
-<label>Transaction Type</label>
-<select id="trtype">
-  <option value="">Select</option>
-  <option>CASH</option>
-  <option>UPI</option>
-  <option>NET</option>
-  <option>DEBIT</option>
-  <option>CREDIT</option>
-  <option>REWARDS</option>
-</select>
-
-<label id="fromToLbl" style="display:none">From / To</label>
-<select id="fromTo" style="display:none"></select>
-<input id="rewardOther" placeholder="Enter reward source" style="display:none">
-
-<div id="cashBox" style="display:none">
-  <h3>Cash Denominations</h3>
-  <div id="denominations"></div>
+  <div class="header-row" style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px;">
+    <label style="margin:0">Payment Breakdown</label>
+    <button type="button" class="btn-add-mode" id="btnAddMode">+ Add Mode</button>
+  </div>
+  <div id="paymentContainer"></div>
+  <div class="header-row" style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px;">
+  <label style="margin:0">
+    Payment Breakdown 
+    <span id="headerAccDisplay" style="color: var(--secondary); font-size: 11px; margin-left: 8px; font-weight: normal;"></span>
+  </label>
+  <button type="button" class="btn-add-mode" id="btnAddMode">+ Add Mode</button>
 </div>
 
-<label>Amount</label>
-<input id="amount" type="number" step="0.01" >
+  <div class="total-wrapper">
+    <span style="font-size: 12px; font-weight: 700; color: var(--text-label);">Total Amount:</span>
+    <span style="font-size: 14px; font-weight: 700; color: var(--primary);" id="grandTotal">₹0.00</span>
+  </div>
 
-<button type="submit">Submit</button>
+  <div id="cashBlock" class="hidden cash-wrapper">
+    <div style="font-weight:600; color:#6366f1; margin-bottom:8px; font-size:12px;">Cash Denominations</div>
+    <div class="cash-grid" id="cashGrid"></div>
+    <div class="err-msg">Please enter denominations</div>
+  </div>
+
+  <div class="btn-group">
+    <button type="submit" id="submitBtn">Save Transaction</button>
+    <button type="button" id="btnRepeat">↺ Repeat</button>
+  </div>
+
+  <div id="footerSync" class="sync-wrapper hidden">
+    <button type="button" id="btnSyncAll">
+        <span id="syncText">☁️ Sync All</span>
+        <small id="syncCount">(0)</small>
+    </button>
+    <button type="button" id="btnStopSync" class="hidden">🛑 Stop Sync</button>
+    <button type="button" id="btnViewQueue">📋 View Queue</button>
+  </div>
 </form>
 
-<!-- Popup -->
-<div class="popup" id="popup">
-  <div class="popup-box">
-    <h3>Confirm Transaction</h3>
-    <div id="popupText"></div>
-    <div id="popupDenoms"></div>
-    <div class="popup-actions">
-      <button onclick="popup.style.display='none'">Cancel</button>
-      <button onclick="send()">Confirm</button>
+<div id="confirmModal" class="modal hidden">
+  <div class="confirm-card">
+    <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Confirm Details</h3>
+    <div id="confirmDetails"></div>
+    <div class="btn-group">
+      <button type="button" id="btnConfirmFinal" class="btn-confirm">Proceed</button>
+      <button type="button" id="btnConfirmCancel" class="btn-cancel">Edit</button>
+    </div>
+  </div>
+</div>
+
+<div id="queueModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header" style="display: flex; justify-content: space-between; padding: 15px; background: var(--bg-input); border-bottom: 1px solid var(--border-color);">
+      <h4 style="margin:0">Offline / Batch Queue</h4>
+      <span style="cursor:pointer; font-size: 20px;" onclick="document.getElementById('queueModal').classList.add('hidden')">✕</span>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Narration</th><th>Invoice</th><th>Purpose</th><th>Account</th><th>Flow</th><th>Amount</th><th style="text-align:center;">Action</th></tr>
+        </thead>
+        <tbody id="queueBody"></tbody>
+      </table>
     </div>
   </div>
 </div>
 
 <script>
-date.value = new Date().toISOString().split("T")[0];
-const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
-const creditCards=[
+// DATE FORMATTER HELPER
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
+}
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysvpY7m7Iw6CO6GPyrJFNR6hcs3bK3XVnEVIySYe-unbIc0kBh_c_TNaZ5mIiDRnRi/exec";
+const bankAccounts = ["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
+const creditCards = [
   "Axis Flipkart","Axis MyZone","Axis Neo",
   "HDFC PhonePe","HDFC Tata Neu","HDFC Millennia",
   "HSBC","IDFC First Millenia",
@@ -159,144 +410,547 @@ const creditCards=[
   "Indusind Plat Aura EDGE","Indusind Legend",
   "Yes Finbooster","Kotak League","Kotak Image",
   "SBI BPCL","Standard Chartered"
-];
-const rewards=["PHONEPE","AMAZON","FLIPKART","OTHER"];
-const denoms=[500,200,100,50,20,10,5,2,1];
+];;
+const rewardPlatforms = ["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik", "Tata Neu"];
+const denoms = [500,200,100,50,20,10,5,2,1];
 
-const dWrap=document.getElementById("denominations");
-denoms.forEach(d=>{
-  dWrap.innerHTML+=`
-  <div class="denom-row">
-    ₹${d}<br>
-    <input type="number" data-d="${d}" value="0">
-  </div>`;
-});
+let db;
+let syncAborted = false;
+let currentPayloads = [];
+const DB_NAME = "TransactionManagerDB_v4", STORE_NAME = "txn_queue";
 
-purpose.onchange=()=>purposeOther.style.display=purpose.value==="Other"?"block":"none";
-spentFor.onchange=()=>spentOther.style.display=spentFor.value==="Other"?"block":"none";
+// FAB Menu Logic
+const navFab = document.getElementById('navFab');
+const fabBtn = document.getElementById('fabToggle');
 
-trtype.onchange=()=>{
-  fromTo.innerHTML="";
-  fromTo.style.display="none";
-  fromToLbl.style.display="none";
-  rewardOther.style.display="none";
-  cashBox.style.display="none";
-  amount.readOnly=false;
-  amount.classList.remove("cash-grey");
-  amount.value="";
-
-  if(trtype.value==="CASH"){
-    cashBox.style.display="block";
-    amount.readOnly=true;
-    amount.classList.add("cash-grey");
-    return;
-  }
-
-  let list=[];
-  if(["UPI","NET","DEBIT"].includes(trtype.value)) list=bankAccounts;
-  if(trtype.value==="CREDIT") list=creditCards;
-  if(trtype.value==="REWARDS") list=rewards;
-
-  if(list.length){
-    fromToLbl.style.display="block";
-    fromTo.style.display="block";
-    fromTo.innerHTML="<option value=''>Select</option>";
-    list.forEach(v=>fromTo.innerHTML+=`<option>${v}</option>`);
-  }
+fabBtn.onclick = (e) => {
+  e.stopPropagation();
+  navFab.classList.toggle('active');
 };
+document.addEventListener('click', () => navFab.classList.remove('active'));
 
-fromTo.onchange=()=>{
-  rewardOther.style.display=(trtype.value==="REWARDS"&&fromTo.value==="OTHER")?"block":"none";
+// Smooth Theme Toggle Logic
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.onclick = () => {
+  themeToggle.classList.add('theme-rotate');
+  const isDark = document.body.classList.toggle('dark');
+  setTimeout(() => {
+    themeToggle.textContent = isDark ? '☀️' : '🌙';
+  }, 150);
+  setTimeout(() => {
+    themeToggle.classList.remove('theme-rotate');
+  }, 500);
 };
+function updateHeaderAccount() {
+  const accSelect = document.querySelector('.row-acc');
+  const otherInput = document.querySelector('.row-acc-other');
+  const display = document.getElementById('headerAccDisplay');
+  
+  if (!accSelect) return;
 
-document.addEventListener("input",e=>{
-  if(e.target.dataset.d){
-    let t=0;
-    document.querySelectorAll("[data-d]").forEach(i=>{
-      t+=Number(i.dataset.d)*(Number(i.value)||0);
-    });
-    amount.value=t;
+  let val = accSelect.value;
+  if (val === 'Other') val = otherInput.value;
+  
+  if (val && val !== 'Select') {
+    display.textContent = `(${val})`;
+  } else {
+    display.textContent = "";
   }
-});
+}
 
-form.onsubmit=e=>{
-  e.preventDefault();
+// Add this line inside your createPaymentRow function 
+// after defining aSel and otherAccInp:
+aSel.addEventListener('change', updateHeaderAccount);
+otherAccInp.addEventListener('input', updateHeaderAccount);
+(function initDB(){
+  try {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => { e.target.result.createObjectStore(STORE_NAME, { autoIncrement: true }); };
+    req.onsuccess = e => { db = e.target.result; updatePendingCount(); checkStatus(); };
+  } catch(e) { console.error("DB Error"); }
+})();
 
-  const missing=[];
-  if(!date.value) missing.push("Date");
-  if(!narration.value) missing.push("Narration");
-  if(!purpose.value) missing.push("Purpose");
-  if(purpose.value==="Other"&&!purposeOther.value) missing.push("Other Purpose");
-  if(!spentFor.value) missing.push("Spent For / Earned By");
-  if(spentFor.value==="Other"&&!spentOther.value) missing.push("Other Name");
-  if(!flow_type.value) missing.push("Transaction Flow");
-  if(!trtype.value) missing.push("Transaction Type");
-  if(trtype.value!=="CASH"&&!fromTo.value) missing.push("From / To");
-  if(trtype.value==="REWARDS"&&fromTo.value==="OTHER"&&!rewardOther.value) missing.push("Reward Source");
-  if(!amount.value||Number(amount.value)<=0) missing.push("Amount");
+function checkStatus() {
+  const online = navigator.onLine;
+  document.getElementById('statusDot').className = online ? 'online' : 'offline';
+}
+window.addEventListener('online', checkStatus);
+window.addEventListener('offline', checkStatus);
 
-  if(missing.length){
-    alert("Please fill the following fields:\n\n• "+missing.join("\n• "));
-    return;
-  }
+async function updatePendingCount(){
+  if(!db) return;
+  const tx = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).getAll();
+  tx.onsuccess = (e) => {
+    const items = e.target.result;
+    document.getElementById("syncCount").textContent = `(${items.length})`;
+    document.getElementById("footerSync").classList.toggle("hidden", items.length === 0);
+    renderQueue(items);
+  };
+}
 
-  popupText.innerHTML=`
-    <b>Date:</b> ${date.value}<br>
-    <b>Narration:</b> ${narration.value}<br>
-    <b>Bill No:</b> ${billNo.value||"-"}<br>
-    <b>Purpose:</b> ${purpose.value==="Other"?purposeOther.value:purpose.value}<br>
-    <b>Spent For / Earned By:</b> ${spentFor.value==="Other"?spentOther.value:spentFor.value}<br>
-    <b>Flow:</b> ${flow_type.value}<br>
-    <b>Type:</b> ${trtype.value}<br>
-    <b>From/To:</b> ${trtype.value==="CASH"?"Cash":(fromTo.value==="OTHER"?rewardOther.value:fromTo.value)}<br>
-    <b>Amount:</b> ₹${amount.value}
+function updateGrandTotal() {
+  let total = 0;
+  document.querySelectorAll('.row-amt').forEach(input => { total += parseFloat(input.value) || 0; });
+  document.getElementById('grandTotal').textContent = `₹${Math.abs(total).toFixed(2)}`;
+}
+
+function createPaymentRow(initial = null) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'payment-row-wrapper';
+  wrapper.innerHTML = `
+    <div class="payment-row">
+      <div><select class="row-type" required><option value="">Type</option><option value="CASH">Cash</option><option value="DEBIT">Debit</option><option value="UPI">UPI</option><option value="NET">Net</option><option value="CREDIT">Credit Card</option><option value="REWARDS">Rewards</option></select></div>
+      <div><select class="row-acc" required><option value="">Account</option></select></div>
+      <div><input type="number" class="row-amt" placeholder="Amt" step="0.01" required min="0.01"></div>
+      <button type="button" class="btn-del-mode">✕</button>
+    </div>
+    <input class="row-acc-other hidden" style="margin-top:6px; height:36px; width:100%; border-radius:10px; border:1px solid var(--border-color); padding:0 10px;" placeholder="Specify Account" required disabled>
+    <div class="err-msg">Payment details incomplete</div>
   `;
-
-  popupDenoms.innerHTML="";
-  if(trtype.value==="CASH"){
-    popupDenoms.innerHTML="<h4>Cash Denominations</h4><div class='popup-grid'></div>";
-    const g=popupDenoms.querySelector(".popup-grid");
-    denoms.forEach(d=>{
-      const c=document.querySelector(`[data-d="${d}"]`).value||0;
-      g.innerHTML+=`<div class="popup-card">₹${d}<br>${c}</div>`;
-    });
+  const tSel = wrapper.querySelector('.row-type'), aSel = wrapper.querySelector('.row-acc'), amtInp = wrapper.querySelector('.row-amt'), otherAccInp = wrapper.querySelector('.row-acc-other');
+  amtInp.oninput = updateGrandTotal;
+  
+  tSel.onchange = () => {
+    aSel.innerHTML = '<option value="">Select</option>';
+    if(tSel.value === 'CASH') { 
+      aSel.add(new Option("Cash", "Cash")); aSel.value = "Cash"; aSel.disabled = true; amtInp.readOnly = true; recalcCash(); 
+    } else {
+      aSel.disabled = false; amtInp.readOnly = false;
+      let list = (tSel.value === "CREDIT") ? creditCards : (tSel.value === "REWARDS" ? rewardPlatforms : bankAccounts);
+      list.forEach(a => aSel.add(new Option(a, a)));
+      aSel.add(new Option("Other", "Other"));
+    }
+    aSel.dispatchEvent(new Event('change')); toggleCashBlock();
+  };
+  aSel.onchange = () => {
+    const isOther = aSel.value === 'Other';
+    otherAccInp.classList.toggle('hidden', !isOther); otherAccInp.disabled = !isOther;
+    otherAccInp.required = isOther;
+  };
+  wrapper.querySelector('.btn-del-mode').onclick = () => { 
+    if(document.querySelectorAll('.payment-row-wrapper').length > 1) { wrapper.remove(); toggleCashBlock(); updateGrandTotal(); } 
+  };
+  document.getElementById('paymentContainer').appendChild(wrapper);
+  if(initial) { 
+    tSel.value = initial.type; tSel.dispatchEvent(new Event('change')); 
+    if(initial.acc) aSel.value = initial.acc;
+    if(initial.amt) amtInp.value = initial.amt;
+    aSel.dispatchEvent(new Event('change'));
   }
+}
 
-  popup.style.display="flex";
+function recalcCash() {
+  let tot = 0; document.querySelectorAll('.denom-input').forEach(i => tot += (i.value || 0) * i.dataset.val);
+  document.querySelectorAll('.payment-row-wrapper').forEach(w => { if(w.querySelector('.row-type').value === 'CASH') w.querySelector('.row-amt').value = tot || ""; });
+  if(tot > 0) document.getElementById('cashBlock').classList.remove('is-invalid');
+  updateGrandTotal();
+}
+
+function toggleCashBlock() {
+  const hasCash = Array.from(document.querySelectorAll('.row-type')).some(s => s.value === 'CASH');
+  document.getElementById('cashBlock').classList.toggle('hidden', !hasCash);
+}
+
+document.getElementById('btnShowAutofill').onclick = () => {
+  document.getElementById('autofillBlock').classList.toggle('hidden');
 };
 
-async function send(){
-  const cash={};
-  document.querySelectorAll("[data-d]").forEach(i=>cash[i.dataset.d]=Number(i.value)||0);
+document.getElementById('btnApplyPaste').onclick = () => {
+  const text = document.getElementById('pasteArea').value;
+  if (!text.trim()) return;
 
-  await fetch("https://hook.eu1.make.com/r5iqxr1c29r3cfehmpiyixmvo2erg9o1",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      category:"monthly_transaction",
-      date:date.value,
-      narration:narration.value,
-      bill_no: billNo.value || "",
-      purpose:purpose.value==="Other"?purposeOther.value:purpose.value,
-      spent_for:spentFor.value==="Other"?spentOther.value:spentFor.value,
-      flow_type:flow_type.value,
-      trtype:trtype.value,
-      from_to:trtype.value==="CASH"?"Cash":(fromTo.value==="OTHER"?rewardOther.value:fromTo.value),
-      amount:amount.value,
-      denominations:cash
-    })
+  const getVal = (key) => {
+    const regex = new RegExp(`${key}:\\s*(.*)`, 'i');
+    const match = text.match(regex);
+    return match ? match[1].trim() : "";
+  };
+
+  const rawDate = getVal('📅 Date'); 
+  const name = getVal('👤 Name');
+  const msg = getVal('📝 Msg');
+  const amountStr = getVal('💰 Amount');
+  const ref = getVal('🔗 Ref');
+  const type = getVal('⇄ Type'); 
+  const account = getVal('🏢 Account'); 
+  if (rawDate) {
+    const parts = rawDate.split('-');
+    if (parts.length === 3) {
+      const formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      document.getElementById('date').value = formattedDate;
+    }
+  }
+
+  if (name) {
+    document.getElementById('narration').value = `Paid to ${name}`.trim();
+  }
+
+  document.getElementById('flow').value = "withdraw";
+
+  if (msg) {
+    const purpSel = document.getElementById('purpose');
+    const purpOther = document.getElementById('purpose_other');
+    let found = false;
+    for (let i = 0; i < purpSel.options.length; i++) {
+        if (purpSel.options[i].text.toLowerCase() === msg.toLowerCase()) {
+            purpSel.value = purpSel.options[i].value;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        purpSel.value = "Other";
+        purpOther.value = msg;
+    }
+    toggleSmartOther(purpSel, 'purpose_other', 'purposeSmartRow');
+  }
+
+  if (amountStr) {
+    const numericAmt = amountStr.replace(/[^\d.]/g, '');
+    const rows = document.querySelectorAll('.row-amt');
+    if (rows.length > 0) {
+      rows[0].value = numericAmt;
+      updateGrandTotal();
+    }
+  }
+if (type) {
+  const flowField = document.getElementById('flow');
+  if (type.toLowerCase().includes('debit')) {
+    flowField.value = "withdraw";
+  } else if (type.toLowerCase().includes('credit')) {
+    flowField.value = "deposit";
+  }
+}
+
+// Logic to auto-fill the Payment Row with the Account info
+if (account) {
+  const firstRowType = document.querySelector('.row-type');
+  const firstRowAcc = document.querySelector('.row-acc');
+  
+  // Default to UPI for pasted receipts, or logic can be added to detect mode
+  firstRowType.value = "UPI"; 
+  firstRowType.dispatchEvent(new Event('change'));
+  
+  // Set the account name
+  setTimeout(() => { // Timeout ensures the account list has populated
+    if (Array.from(firstRowAcc.options).some(o => o.value === account)) {
+      firstRowAcc.value = account;
+    } else {
+      firstRowAcc.value = "Other";
+      firstRowAcc.dispatchEvent(new Event('change'));
+      const otherInput = document.querySelector('.row-acc-other');
+      otherInput.value = account;
+    }
+  }, 50);
+}
+  if (ref) {
+    document.getElementById('referenceWrapper').classList.remove('hidden');
+    document.getElementById('reference').value = ref;
+  }
+
+  document.getElementById('pasteArea').value = "";
+  document.getElementById('autofillBlock').classList.add('hidden');
+};
+
+function getCashSummaryHtml(p) {
+  let html = '<div class="confirm-matrix-grid">';
+  denoms.forEach(v => {
+    const val = p.get("d"+v) || 0;
+    html += `<div class="confirm-matrix-card"><span>₹${v}</span><strong>${val}</strong></div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function getCashTextSummary(p) {
+    return denoms.map(v => `${v}x${p.get("d"+v) || 0}`).join(", ");
+}
+
+document.getElementById('txnForm').onsubmit = function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const isOnline = navigator.onLine;
+  const isBatch = document.getElementById('batchToggle').checked;
+
+  const hasCashMode = Array.from(document.querySelectorAll('.row-type')).some(s => s.value === 'CASH');
+  const cashTotal = Array.from(document.querySelectorAll('.denom-input')).reduce((sum, i) => sum + (i.value * i.dataset.val), 0);
+  
+  if(hasCashMode && cashTotal <= 0) document.getElementById('cashBlock').classList.add('is-invalid');
+  else document.getElementById('cashBlock').classList.remove('is-invalid');
+
+  form.classList.add('was-validated');
+  if (!form.checkValidity()) return;
+  if(hasCashMode && cashTotal <= 0) return;
+  
+  const gTotalStr = document.getElementById('grandTotal').textContent;
+  if(parseFloat(gTotalStr.replace('₹', '')) <= 0) {
+    alert("Transaction amount must be greater than zero.");
+    return;
+  }
+
+  const pFinal = document.getElementById('purpose').value === 'Other' ? document.getElementById('purpose_other').value : document.getElementById('purpose').value;
+  const sFinal = document.getElementById('spent_for').value === 'Other' ? document.getElementById('spent_for_other').value : document.getElementById('spent_for').value;
+  const invoiceVal = document.getElementById('invoice_no').value || "N/A";
+  const refVal = document.getElementById('reference').value || "";
+
+  currentPayloads = [];
+  const repeatData = [];
+  
+  document.querySelectorAll('.payment-row-wrapper').forEach(row => {
+    const accSel = row.querySelector('.row-acc');
+    const aFinal = accSel.value === 'Other' ? row.querySelector('.row-acc-other').value : accSel.value;
+    const p = new URLSearchParams({
+      date: document.getElementById('date').value, 
+      narration: document.getElementById('narration').value,
+      invoice_no: document.getElementById('invoice_no').value,
+      reference: refVal,
+      purpose: pFinal, spent_for: sFinal, flow: document.getElementById('flow').value,
+      trtype: row.querySelector('.row-type').value, from_to: aFinal,
+      withdrawn: document.getElementById('flow').value === 'withdraw' ? row.querySelector('.row-amt').value : 0,
+      deposit: document.getElementById('flow').value === 'deposit' ? row.querySelector('.row-amt').value : 0,
+      category: "monthly transactions"
+    });
+    if(row.querySelector('.row-type').value === "CASH") {
+        document.querySelectorAll(".denom-input").forEach(i => p.append("d"+i.dataset.val, i.value || 0));
+    }
+    currentPayloads.push(p.toString());
+    repeatData.push(p.toString());
   });
 
-  popup.style.display="none";
-  alert("Transaction saved");
-  form.reset();
+  let detailsHtml = `
+    <div class="confirm-item"><span class="confirm-label">Date</span><span class="confirm-val">${formatDisplayDate(document.getElementById('date').value)}</span></div>
+    <div class="confirm-item"><span class="confirm-label">Narration</span><span class="confirm-val">${document.getElementById('narration').value}</span></div>
+    <div class="confirm-item"><span class="confirm-label">Invoice No.</span><span class="confirm-val">${invoiceVal}</span></div>
+    ${refVal ? `<div class="confirm-item"><span class="confirm-label">Ref</span><span class="confirm-val">${refVal}</span></div>` : ''}
+    <div class="confirm-item"><span class="confirm-label">Purpose</span><span class="confirm-val">${pFinal}</span></div>
+    <div class="confirm-item"><span class="confirm-label">Spent For</span><span class="confirm-val">${sFinal}</span></div>
+    <div class="confirm-item"><span class="confirm-label">Flow</span><span class="confirm-val">${document.getElementById('flow').value}</span></div>
+    <div class="confirm-item" style="border:none"><span class="confirm-label" style="color:var(--primary)">Total Amount</span><span class="confirm-val" style="color:var(--primary); font-weight:bold">${gTotalStr}</span></div>
+    <br>
+    <div class="confirm-section-title">Payments</div>
+  `;
 
-/* ✅ Always reset date to today */
-date.value = new Date().toISOString().split("T")[0];
+  currentPayloads.forEach(payloadStr => {
+      const p = new URLSearchParams(payloadStr);
+      const amt = p.get('flow') === 'withdraw' ? p.get('withdrawn') : p.get('deposit');
+      detailsHtml += `<div class="confirm-item" style="border-bottom:none"><span class="confirm-label">${p.get('from_to')} (${p.get('trtype')})</span><span class="confirm-val">₹${amt}</span></div>`;
+      if(p.get('trtype') === 'CASH') detailsHtml += getCashSummaryHtml(p);
+  });
 
-cashBox.style.display="none";
+  document.getElementById('confirmDetails').innerHTML = detailsHtml;
+  localStorage.setItem("lastPackage", JSON.stringify(repeatData));
+
+  if (!isOnline || isBatch) {
+    saveToDB();
+  } else {
+    document.getElementById('confirmModal').classList.remove('hidden');
+  }
+};
+
+async function processSave() {
+  document.getElementById('confirmModal').classList.add('hidden');
+  const btn = document.getElementById('submitBtn'); 
+  const originalText = btn.textContent;
+  btn.disabled = true; btn.innerHTML = `<span class="saving-text">Saving...</span>`;
+
+  try {
+    for(let body of currentPayloads) { await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body }); }
+    alert("Saved Successfully!"); fullReset();
+  } catch (err) {
+    saveToDB();
+    alert("Network Error: Saving to local storage.");
+  } finally { btn.disabled = false; btn.textContent = originalText; }
 }
-</script>
 
+function saveToDB() {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    currentPayloads.forEach(body => tx.objectStore(STORE_NAME).add(body));
+    tx.oncomplete = () => { updatePendingCount(); fullReset(); };
+}
+
+function fullReset() {
+  const batchState = document.getElementById('batchToggle').checked;
+  document.getElementById('txnForm').reset();
+  document.getElementById('batchToggle').checked = batchState;
+  document.getElementById('txnForm').classList.remove('was-validated');
+  document.getElementById('purpose_other').classList.add('hidden');
+  document.getElementById('spent_for_other').classList.add('hidden');
+  document.getElementById('referenceWrapper').classList.add('hidden');
+  document.getElementById('paymentContainer').innerHTML = ""; 
+  createPaymentRow();
+  document.getElementById('date').value = new Date().toISOString().split("T")[0];
+  document.querySelectorAll('.denom-input').forEach(i => i.value = "");
+  toggleCashBlock(); updateGrandTotal();
+}
+
+async function syncAllData(){
+  if (!navigator.onLine) { alert("Internet needed to sync."); return; }
+  if(!confirm("Starting sync process. Proceed?")) return;
+
+  const btnSync = document.getElementById('btnSyncAll');
+  const btnStop = document.getElementById('btnStopSync');
+  
+  syncAborted = false;
+  btnSync.classList.add('hidden');
+  btnStop.classList.remove('hidden');
+
+  const tx = db.transaction(STORE_NAME, "readonly");
+  const store = tx.objectStore(STORE_NAME);
+  const items = await new Promise(r => { store.getAll().onsuccess = (e) => r(e.target.result); });
+  const keys = await new Promise(r => { store.getAllKeys().onsuccess = (e) => r(e.target.result); });
+
+  for (let i = 0; i < items.length; i++) {
+    if(syncAborted) break;
+    btnStop.textContent = `🛑 Stop Syncing (${i+1}/${items.length})`;
+    try {
+      await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: items[i] });
+      await new Promise(res => {
+          db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete(keys[i]).onsuccess = () => { updatePendingCount(); res(); };
+      });
+    } catch (err) { alert("Sync interrupted."); break; }
+  }
+  
+  btnStop.classList.add('hidden');
+  btnStop.textContent = "🛑 Stop Sync";
+  btnSync.classList.remove('hidden');
+  if(syncAborted) alert("Sync stopped.");
+}
+
+function renderQueue(items) {
+  const body = document.getElementById('queueBody'); body.innerHTML = "";
+  items.forEach((item, idx) => {
+    const p = new URLSearchParams(item);
+    const amt = parseFloat(p.get('withdrawn')) > 0 ? p.get('withdrawn') : p.get('deposit');
+    const invoice = p.get('invoice_no') || "-";
+    
+    let cashInfo = '';
+    if(p.get('trtype') === 'CASH') {
+        cashInfo = `<div class="queue-denoms">${getCashTextSummary(p)}</div>`;
+    }
+    let accountDisplay = `<strong>${p.get('from_to')}</strong>`;
+if (p.get('trtype') === 'CASH') {
+    accountDisplay += cashInfo;
+} else {
+    accountDisplay += `<div style="font-size:10px; color:#94a3b8; margin-top:2px;">(${p.get('trtype')})</div>`;
+}
+
+    body.innerHTML += `<tr>
+  <td>${formatDisplayDate(p.get('date'))}</td>
+  <td>${p.get('narration')}</td>
+  <td>${invoice}</td>
+  <td>${p.get('purpose')}</td>
+  <td>${accountDisplay}</td>
+  <td>${p.get('flow')}</td>
+  <td>₹${amt}</td>
+  <td><div class="td-center">
+    <span style="cursor:pointer; font-size:16px;" onclick="editQueue(${idx})">✏️</span>
+    <span style="cursor:pointer; font-size:16px;" onclick="deleteQueue(${idx})">🗑️</span>
+  </div></td>
+</tr>`; 
+ });
+}
+
+window.deleteQueue = (idx) => {
+  if(!confirm("Delete this queued item?")) return;
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+  store.getAllKeys().onsuccess = (e) => { store.delete(e.target.result[idx]).onsuccess = () => updatePendingCount(); };
+};
+
+window.editQueue = (idx) => {
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+  store.getAll().onsuccess = (e) => {
+    const item = e.target.result[idx];
+    const p = new URLSearchParams(item);
+    document.getElementById('paymentContainer').innerHTML = "";
+    document.getElementById('date').value = p.get('date');
+    document.getElementById('narration').value = p.get('narration');
+    document.getElementById('invoice_no').value = p.get('invoice_no') || "";
+    if(p.get('reference')) {
+        document.getElementById('referenceWrapper').classList.remove('hidden');
+        document.getElementById('reference').value = p.get('reference');
+    }
+    const purpVal = p.get('purpose'); const purpSel = document.getElementById('purpose');
+    if(Array.from(purpSel.options).some(o => o.value === purpVal)) purpSel.value = purpVal;
+    else { purpSel.value = "Other"; document.getElementById('purpose_other').value = purpVal; }
+    toggleSmartOther(purpSel, 'purpose_other', 'purposeSmartRow');
+    const spentVal = p.get('spent_for'); const spentSel = document.getElementById('spent_for');
+    if(Array.from(spentSel.options).some(o => o.value === spentVal)) spentSel.value = spentVal;
+    else { spentSel.value = "Other"; document.getElementById('spent_for_other').value = spentVal; }
+    toggleSmartOther(spentSel, 'spent_for_other', 'spentSmartRow');
+    document.getElementById('flow').value = p.get('flow');
+    const amt = p.get('flow') === 'withdraw' ? p.get('withdrawn') : p.get('deposit');
+    createPaymentRow({ type: p.get('trtype'), acc: p.get('from_to'), amt: amt });
+    
+    if(p.get('trtype') === 'CASH') {
+        denoms.forEach(v => {
+            const val = p.get('d'+v);
+            document.querySelector(`.denom-input[data-val="${v}"]`).value = val || "";
+        });
+        recalcCash();
+    }
+    
+    updateGrandTotal();
+    store.getAllKeys().onsuccess = (ev) => { store.delete(ev.target.result[idx]).onsuccess = () => { updatePendingCount(); document.getElementById('queueModal').classList.add('hidden'); }; };
+  };
+};
+
+function toggleSmartOther(selectObj, otherId, parentId) {
+  const otherInput = document.getElementById(otherId);
+  const parent = document.getElementById(parentId);
+  const isOther = selectObj.value === 'Other';
+  otherInput.classList.toggle('hidden', !isOther);
+  otherInput.disabled = !isOther;
+  otherInput.required = isOther;
+  parent.classList.toggle('has-other', isOther);
+  if(isOther) otherInput.focus();
+}
+
+denoms.forEach(v => {
+  const c = document.createElement("div"); c.className = "cash-card";
+  c.innerHTML = `<span>₹${v}</span><input type="number" data-val="${v}" class="denom-input" placeholder="0">`;
+  c.querySelector('input').oninput = recalcCash;
+  document.getElementById('cashGrid').appendChild(c);
+});
+
+document.getElementById('btnAddMode').onclick = () => createPaymentRow();
+document.getElementById('btnViewQueue').onclick = () => document.getElementById('queueModal').classList.remove('hidden');
+document.getElementById('btnSyncAll').onclick = syncAllData;
+document.getElementById('btnStopSync').onclick = () => { syncAborted = true; };
+
+if (document.body.classList.contains('dark')) {
+    themeToggle.textContent = '☀️';
+}
+
+document.getElementById('btnConfirmFinal').onclick = processSave;
+document.getElementById('btnConfirmCancel').onclick = () => document.getElementById('confirmModal').classList.add('hidden');
+
+document.getElementById('btnRepeat').onclick = () => {
+  const last = localStorage.getItem("lastPackage"); if(!last) return;
+  const list = JSON.parse(last); document.getElementById('paymentContainer').innerHTML = "";
+  list.forEach((s, idx) => {
+    const p = new URLSearchParams(s);
+    if(idx === 0) { 
+        document.getElementById('narration').value = p.get('narration'); 
+        document.getElementById('invoice_no').value = p.get('invoice_no') || "";
+        document.getElementById('purpose').value = p.get('purpose'); 
+        document.getElementById('spent_for').value = p.get('spent_for'); 
+        document.getElementById('flow').value = p.get('flow'); 
+        toggleSmartOther(document.getElementById('purpose'), 'purpose_other', 'purposeSmartRow');
+        toggleSmartOther(document.getElementById('spent_for'), 'spent_for_other', 'spentSmartRow');
+    }
+    createPaymentRow({ type: p.get('trtype'), acc: p.get('from_to'), amt: p.get('flow') === 'withdraw' ? p.get('withdrawn') : p.get('deposit') });
+    if(p.get('trtype') === 'CASH') {
+        denoms.forEach(v => {
+            document.querySelector(`.denom-input[data-val="${v}"]`).value = p.get('d'+v) || "";
+        });
+        recalcCash();
+    }
+  });
+  updateGrandTotal();
+};
+document.getElementById('date').value = new Date().toISOString().split("T")[0];
+createPaymentRow();
+</script>
 </body>
 </html>
