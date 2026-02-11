@@ -1,121 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billing Dashboard</title>
-  <style>
-    :root { --primary: #2563eb; --bg: #f8fafc; --card-bg: #ffffff; }
-    body { 
-      margin: 0; padding: 20px 0; min-height: 100vh;
-      display: flex; flex-direction: column; align-items: center;
-      background-color: var(--bg); font-family: -apple-system, system-ui, sans-serif;
-    }
-    .container { 
-      width: 90%; max-width: 400px; background: var(--card-bg); 
-      padding: 25px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      text-align: center; margin-bottom: 25px;
-    }
-    h2 { margin: 0 0 5px; font-size: 22px; color: #1e293b; }
-    .subtitle { color: #64748b; font-size: 13px; margin-bottom: 20px; }
-    
-    select, button { width: 100%; height: 52px; border-radius: 12px; font-size: 16px; margin: 8px 0; }
-    select { border: 2px solid #e2e8f0; background: #fff; padding: 0 10px; }
-    button { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    button:disabled { background: #cbd5e1; cursor: not-allowed; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billing Dashboard</title>
 
-    .data-list { width: 90%; max-width: 400px; }
-    .card-item { 
-      background: white; padding: 16px; border-radius: 18px; 
-      margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;
-    }
-    .card-info { text-align: left; }
-    .card-name { font-weight: 700; color: #1e293b; font-size: 15px; display: block; margin-bottom: 3px;}
-    .card-dates { font-size: 12px; color: #64748b; line-height: 1.4; }
-    
-    .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-    .status-paid { background: #dcfce7; color: #15803d; }
-    .status-unpaid { background: #fee2e2; color: #b91c1c; }
-  </style>
+<style>
+:root { --primary: #2563eb; --bg: #f8fafc; --card-bg: #ffffff; }
+
+body {
+  margin:0; padding:20px 0;
+  display:flex; flex-direction:column; align-items:center;
+  background:var(--bg);
+  font-family:-apple-system, system-ui, sans-serif;
+}
+
+.data-list { width:90%; max-width:400px; }
+
+.card-item {
+  background:white;
+  padding:16px;
+  border-radius:18px;
+  margin-bottom:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+  border:1px solid #f1f5f9;
+}
+
+.card-info { text-align:left; }
+.card-name { font-weight:700; font-size:15px; margin-bottom:3px; display:block;}
+.card-dates { font-size:12px; color:#64748b; }
+
+.switch {
+  position:relative;
+  display:inline-block;
+  width:48px;
+  height:26px;
+}
+
+.switch input { display:none; }
+
+.slider {
+  position:absolute;
+  cursor:pointer;
+  top:0; left:0; right:0; bottom:0;
+  background-color:#f87171;
+  transition:.3s;
+  border-radius:26px;
+}
+
+.slider:before {
+  position:absolute;
+  content:"";
+  height:20px;
+  width:20px;
+  left:3px;
+  bottom:3px;
+  background:white;
+  transition:.3s;
+  border-radius:50%;
+}
+
+input:checked + .slider {
+  background-color:#22c55e;
+}
+
+input:checked + .slider:before {
+  transform:translateX(22px);
+}
+
+.status-text {
+  font-size:10px;
+  font-weight:700;
+  margin-top:4px;
+  text-align:center;
+}
+</style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Payment Portal</h2>
-  <p class="subtitle">Updates reflected in Google Sheets</p>
-  <select id="cardSelect" onchange="updateUI()"><option>Loading data...</option></select>
-  <button id="btn" onclick="submit()" disabled>Mark as Paid</button>
-</div>
-
 <div class="data-list" id="fullList">
-  <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px 10px;">
-     <span style="font-weight: 700; color: #64748b; font-size: 14px;">SUMMARY</span>
+  <div style="padding:0 10px 10px;font-weight:700;color:#64748b;font-size:14px;">
+    SUMMARY
   </div>
 </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbzMl206QgGnE7TEZM6vdog_TtvknkC1B9VsTDwik03f9HewU2496_o1lPBVZvHYRbnqgA/exec"; 
-  let cardData = [];
+const API_URL = "https://script.google.com/macros/s/AKfycbzMl206QgGnE7TEZM6vdog_TtvknkC1B9VsTDwik03f9HewU2496_o1lPBVZvHYRbnqgA/exec";
+let cardData = [];
 
-  async function fetchData() {
-    const response = await fetch(API_URL);
-    cardData = await response.json();
-    renderUI();
-  }
+async function fetchData() {
+  const response = await fetch(API_URL);
+  cardData = await response.json();
+  renderUI();
+}
 
-  function renderUI() {
-    const sel = document.getElementById('cardSelect');
-    sel.innerHTML = cardData.map(item => `<option value="${item.row}">${item.cardName}</option>`).join('');
-    
-    const list = document.getElementById('fullList');
-    list.innerHTML = '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px 10px;"><span style="font-weight: 700; color: #64748b; font-size: 14px;">SUMMARY</span></div>';
-    
-    cardData.forEach(item => {
-      const isPaid = item.status.toLowerCase() === 'paid';
-      const div = document.createElement('div');
-      div.className = 'card-item';
-      div.innerHTML = `
-        <div class="card-info">
-          <span class="card-name">${item.cardName}</span>
-          <span class="card-dates">Bill: ${item.billDate}<br>Due: ${item.dueDate}</span>
-        </div>
-        <span class="status-badge ${isPaid ? 'status-paid' : 'status-unpaid'}">${item.status}</span>
-      `;
-      list.appendChild(div);
+function renderUI() {
+  const list = document.getElementById('fullList');
+  list.innerHTML = '<div style="padding:0 10px 10px;font-weight:700;color:#64748b;font-size:14px;">SUMMARY</div>';
+
+  cardData.forEach(item => {
+    const isPaid = item.status.toLowerCase() === 'paid';
+
+    const div = document.createElement('div');
+    div.className = 'card-item';
+
+    div.innerHTML = `
+      <div class="card-info">
+        <span class="card-name">${item.cardName}</span>
+        <span class="card-dates">
+          Bill: ${item.billDate}<br>
+          Due: ${item.dueDate}
+        </span>
+      </div>
+
+      <div style="text-align:center;">
+        <label class="switch">
+          <input type="checkbox" ${isPaid ? "checked" : ""} 
+            onchange="toggleStatus(${item.row}, this)">
+          <span class="slider"></span>
+        </label>
+        <div class="status-text">${isPaid ? "PAID" : "UNPAID"}</div>
+      </div>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+async function toggleStatus(row, toggleElement) {
+  toggleElement.disabled = true;
+
+  const newStatus = toggleElement.checked ? "Paid" : "Unpaid";
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ 
+        row: row,
+        status: newStatus
+      })
     });
 
-    updateUI();
-    document.getElementById('btn').disabled = false;
+    await fetchData();
+
+  } catch (e) {
+    alert("Update failed");
+    toggleElement.disabled = false;
   }
+}
 
-  function updateUI() {
-    const sel = document.getElementById('cardSelect');
-    const selected = cardData.find(i => i.row == sel.value);
-    const btn = document.getElementById('btn');
-    if(selected) {
-      const isPaid = selected.status.toLowerCase() === 'paid';
-      btn.disabled = isPaid;
-      btn.innerText = isPaid ? "Payment Recorded" : "Confirm Payment";
-    }
-  }
-
-  async function submit() {
-    const btn = document.getElementById('btn');
-    const row = document.getElementById('cardSelect').value;
-    btn.disabled = true;
-    btn.innerText = "Processing...";
-
-    try {
-      await fetch(API_URL, { method: 'POST', body: JSON.stringify({ row: row }) });
-      await fetchData(); 
-    } catch (e) {
-      alert("Error updating spreadsheet");
-      btn.disabled = false;
-    }
-  }
-
-  fetchData();
+fetchData();
 </script>
 
 </body>
