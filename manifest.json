@@ -1,11 +1,11 @@
 {
-  "name": "Credit Card Payment Updates",
+  "name": "CC Payment Updates",
   "short_name": "CC Payment Updates",
+  "description": "Real-time credit card billing and payment status tracker.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "icon.png",
@@ -16,6 +16,12 @@
       "src": "icon.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "maskable-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
