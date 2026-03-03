@@ -2,169 +2,229 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Billing Dashboard</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Quantum Finance</title>
 <style>
-:root { --primary: #2563eb; --bg: #f8fafc; --card-bg: #ffffff; }
+:root {
+  --cyan: #00f2ff;
+  --magenta: #bc00ff;
+  --warning: #ff3c00;
+  --safe: #00ff88;
+  --bg-deep: #020408;
+}
 
 body {
-  margin:0; padding:20px 0;
-  display:flex; flex-direction:column; align-items:center;
-  background:var(--bg);
-  font-family:-apple-system, system-ui, sans-serif;
+  margin: 0; padding: 0;
+  background: var(--bg-deep);
+  color: #e2e8f0;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
 }
 
-.data-list { width:90%; max-width:400px; }
-
-.card-item {
-  background:white;
-  padding:16px;
-  border-radius:18px;
-  margin-bottom:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  box-shadow:0 2px 8px rgba(0,0,0,0.04);
-  border:1px solid #f1f5f9;
+/* CYBER BACKGROUND ANIMATION */
+body::before {
+  content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: 
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 2px, 3px 100%; z-index: 1000; pointer-events: none;
 }
 
-.card-info { text-align:left; }
-.card-name { font-weight:700; font-size:15px; margin-bottom:3px; display:block;}
-.card-dates { font-size:12px; color:#64748b; }
-
-.switch {
-  position:relative;
-  display:inline-block;
-  width:48px;
-  height:26px;
+/* HUD HEADER */
+.hud-header {
+  padding: 40px 20px;
+  background: linear-gradient(180deg, rgba(0, 242, 255, 0.1) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+  text-align: center;
+  backdrop-filter: blur(10px);
 }
 
-.switch input { display:none; }
-
-.slider {
-  position:absolute;
-  cursor:pointer;
-  top:0; left:0; right:0; bottom:0;
-  background-color:#f87171;
-  transition:.3s;
-  border-radius:26px;
+.glitch-total {
+  font-size: 42px; font-weight: 900;
+  letter-spacing: -2px;
+  color: #fff;
+  text-shadow: 2px 2px var(--magenta), -2px -2px var(--cyan);
+  margin: 10px 0;
 }
 
-.slider:before {
-  position:absolute;
-  content:"";
-  height:20px;
-  width:20px;
-  left:3px;
-  bottom:3px;
-  background:white;
-  transition:.3s;
-  border-radius:50%;
+.stats-bar {
+  display: flex; justify-content: center; gap: 20px; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 2px; color: var(--cyan);
 }
 
-input:checked + .slider {
-  background-color:#22c55e;
+/* GRID SYSTEM */
+.deck {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
-input:checked + .slider:before {
-  transform:translateX(22px);
+/* QUANTUM CARD */
+.q-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2px 20px 2px 20px;
+  padding: 20px;
+  transition: 0.3s;
+  overflow: hidden;
 }
 
-.status-text {
-  font-size:10px;
-  font-weight:700;
-  margin-top:4px;
-  text-align:center;
+.q-card.unpaid {
+  background: rgba(255, 60, 0, 0.03);
+  border-color: rgba(255, 60, 0, 0.3);
+  animation: pulse-border 2s infinite;
 }
+
+@keyframes pulse-border {
+  0% { box-shadow: 0 0 0px rgba(255, 60, 0, 0); }
+  50% { box-shadow: 0 0 15px rgba(255, 60, 0, 0.2); }
+  100% { box-shadow: 0 0 0px rgba(255, 60, 0, 0); }
+}
+
+.card-label {
+  font-size: 11px; font-weight: 800; color: var(--cyan);
+  text-transform: uppercase; margin-bottom: 5px;
+}
+
+.card-amount {
+  font-size: 24px; font-family: 'Courier New', Courier, monospace;
+  font-weight: bold; margin-bottom: 15px;
+}
+
+.card-meta {
+  display: flex; justify-content: space-between;
+  font-size: 10px; border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 10px; color: #888;
+}
+
+/* BIOMETRIC TOGGLE */
+.bio-toggle {
+  position: absolute; top: 15px; right: 15px;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.toggle-input { display: none; }
+.toggle-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 2px solid #333; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; transition: 0.4s;
+}
+
+.toggle-input:checked + .toggle-btn {
+  border-color: var(--safe); color: var(--safe);
+  box-shadow: 0 0 15px var(--safe);
+}
+
+.toggle-input:not(:checked) + .toggle-btn {
+  border-color: var(--warning); color: var(--warning);
+}
+
+.scanner-line {
+  position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+  background: rgba(0, 242, 255, 0.5);
+  box-shadow: 0 0 10px var(--cyan);
+  animation: scan 3s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0% { top: 0%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
 </style>
 </head>
 <body>
 
-<div class="data-list" id="fullList">
-  <div style="padding:0 10px 10px;font-weight:700;color:#64748b;font-size:14px;">
-    SUMMARY
+<div class="hud-header">
+  <div class="stats-bar">
+    <span>System: Online</span>
+    <span id="cardCount">Cards: 0</span>
   </div>
+  <div class="glitch-total" id="mainTotal">₹0</div>
+  <div class="stats-bar" style="color:var(--magenta)">Total Liability Scan</div>
 </div>
+
+<div class="deck" id="mainDeck">
+  </div>
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzMl206QgGnE7TEZM6vdog_TtvknkC1B9VsTDwik03f9HewU2496_o1lPBVZvHYRbnqgA/exec";
-let cardData = [];
+const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 
-async function fetchData() {
-  const response = await fetch(API_URL);
-  cardData = await response.json();
-  renderUI();
+async function loadQuantumGrid() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    
+    document.getElementById('cardCount').innerText = `Nodes: ${data.length}`;
+    renderDeck(data);
+  } catch (e) {
+    console.error("Link Failure");
+  }
 }
 
-function renderUI() {
-  const list = document.getElementById('fullList');
-  list.innerHTML = '<div style="padding:0 10px 10px;font-weight:700;color:#64748b;font-size:14px;">SUMMARY</div>';
+function renderDeck(data) {
+  const deck = document.getElementById('mainDeck');
+  const totalEl = document.getElementById('mainTotal');
+  let totalUnpaid = 0;
+  let html = '';
 
-  cardData.forEach(item => {
+  data.forEach(item => {
     const isPaid = item.status.toLowerCase() === 'paid';
+    const amt = parseFloat(item.amount) || 0;
+    if(!isPaid) totalUnpaid += amt;
 
-    const div = document.createElement('div');
-    div.className = 'card-item';
+    html += `
+      <div class="q-card ${isPaid ? 'paid' : 'unpaid'}">
+        ${!isPaid ? '<div class="scanner-line"></div>' : ''}
+        <div class="card-label">${item.cardName}</div>
+        <div class="card-amount">${formatter.format(amt)}</div>
+        
+        <div class="bio-toggle">
+          <label>
+            <input type="checkbox" class="toggle-input" ${isPaid ? 'checked' : ''} 
+                   onchange="updateNode(${item.row}, this)">
+            <div class="toggle-btn">
+               ${isPaid ? '✔' : '✕'}
+            </div>
+          </label>
+        </div>
 
-    div.innerHTML = `
-      <div class="card-info">
-        <span class="card-name">${item.cardName}</span>
-        <span class="card-dates">
-          Bill: ${item.billDate}<br>
-          Due: ${item.dueDate}
-        </span>
-      </div>
-
-      <div style="text-align:center;">
-        <label class="switch">
-          <input type="checkbox" ${isPaid ? "checked" : ""} 
-            onchange="toggleStatus(${item.row}, this)">
-          <span class="slider"></span>
-        </label>
-        <div class="status-text">${isPaid ? "PAID" : "UNPAID"}</div>
+        <div class="card-meta">
+          <span>GEN: ${item.billDate}</span>
+          <span style="${!isPaid ? 'color:var(--warning)' : ''}">DUE: ${item.dueDate}</span>
+        </div>
       </div>
     `;
-
-    list.appendChild(div);
   });
+
+  deck.innerHTML = html;
+  totalEl.innerText = formatter.format(totalUnpaid);
 }
 
-async function toggleStatus(row, toggleElement) {
-  toggleElement.disabled = true;
-
-  const newStatus = toggleElement.checked ? "Paid" : "Unpaid";
-
+async function updateNode(row, el) {
+  el.parentElement.style.opacity = "0.3";
+  const status = el.checked ? "Paid" : "Unpaid";
+  
   try {
     await fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify({ 
-        row: row,
-        status: newStatus
-      })
+      body: JSON.stringify({ row: row, status: status })
     });
-
-    await fetchData();
-
+    loadQuantumGrid();
   } catch (e) {
-    alert("Update failed");
-    toggleElement.disabled = false;
+    alert("Neural Link Interrupted");
+    loadQuantumGrid();
   }
 }
 
-fetchData();
-</script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Billing App Registered'))
-        .catch(err => console.log('Registration Failed', err));
-    });
-  }
+loadQuantumGrid();
 </script>
 </body>
 </html>
