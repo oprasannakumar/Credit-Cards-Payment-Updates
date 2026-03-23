@@ -1,27 +1,16 @@
 {
-  "name": "CC Payment Updates",
-  "short_name": "CC Payment Updates",
-  "description": "Real-time credit card billing and payment status tracker.",
-  "start_url": "./index.html",
+  "name": "CC Updates",
+  "short_name": "CC Updates",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#020408",
+  "theme_color": "#00f2ff",
   "icons": [
     {
-      "src": "icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "maskable-icon.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/2092/2092663.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }
