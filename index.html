@@ -3,145 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#020408">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2092/2092663.png">
 <title>Quantum Finance</title>
 <style>
-:root {
-  --cyan: #00f2ff;
-  --magenta: #bc00ff;
-  --warning: #ff3c00;
-  --safe: #00ff88;
-  --bg-deep: #020408;
-}
-
-body {
-  margin: 0; padding: 0;
-  background: var(--bg-deep);
-  color: #e2e8f0;
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  overflow-x: hidden;
-}
-
-/* CYBER BACKGROUND ANIMATION */
-body::before {
-  content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: 
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  background-size: 100% 2px, 3px 100%; z-index: 1000; pointer-events: none;
-}
-
-/* HUD HEADER */
-.hud-header {
-  padding: 40px 20px;
-  background: linear-gradient(180deg, rgba(0, 242, 255, 0.1) 0%, transparent 100%);
-  border-bottom: 1px solid rgba(0, 242, 255, 0.2);
-  text-align: center;
-  backdrop-filter: blur(10px);
-}
-
-.glitch-total {
-  font-size: 42px; font-weight: 900;
-  letter-spacing: -2px;
-  color: #fff;
-  text-shadow: 2px 2px var(--magenta), -2px -2px var(--cyan);
-  margin: 10px 0;
-}
-
-.stats-bar {
-  display: flex; justify-content: center; gap: 20px; font-size: 10px;
-  text-transform: uppercase; letter-spacing: 2px; color: var(--cyan);
-}
-
-/* GRID SYSTEM */
-.deck {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 15px;
-  padding: 20px;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-/* QUANTUM CARD */
-/* QUANTUM CARD */
-.q-card {
-  position: relative;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  
-  /* Update this line to round all 4 corners */
-  border-radius: 10px; 
-  
-  padding: 20px;
-  transition: 0.3s;
-  overflow: hidden;
-  backdrop-filter: blur(5px); /* Optional: adds a nice glass effect */
-}
-
-.q-card.unpaid {
-  background: rgba(255, 60, 0, 0.03);
-  border-color: rgba(255, 60, 0, 0.3);
-  animation: pulse-border 2s infinite;
-}
-
-@keyframes pulse-border {
-  0% { box-shadow: 0 0 0px rgba(255, 60, 0, 0); }
-  50% { box-shadow: 0 0 15px rgba(255, 60, 0, 0.2); }
-  100% { box-shadow: 0 0 0px rgba(255, 60, 0, 0); }
-}
-
-.card-label {
-  font-size: 11px; font-weight: 800; color: var(--cyan);
-  text-transform: uppercase; margin-bottom: 5px;
-}
-
-.card-amount {
-  font-size: 24px; font-family: 'Courier New', Courier, monospace;
-  font-weight: bold; margin-bottom: 15px;
-}
-
-.card-meta {
-  display: flex; justify-content: space-between;
-  font-size: 10px; border-top: 1px solid rgba(255,255,255,0.05);
-  padding-top: 10px; color: #888;
-}
-
-/* BIOMETRIC TOGGLE */
-.bio-toggle {
-  position: absolute; top: 15px; right: 15px;
-  display: flex; flex-direction: column; align-items: center;
-}
-
+/* ... (Your CSS remains exactly as you wrote it) ... */
+:root { --cyan: #00f2ff; --magenta: #bc00ff; --warning: #ff3c00; --safe: #00ff88; --bg-deep: #020408; }
+body { margin: 0; padding: 0; background: var(--bg-deep); color: #e2e8f0; font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden; }
+body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06)); background-size: 100% 2px, 3px 100%; z-index: 1000; pointer-events: none; }
+.hud-header { padding: 40px 20px; background: linear-gradient(180deg, rgba(0, 242, 255, 0.1) 0%, transparent 100%); border-bottom: 1px solid rgba(0, 242, 255, 0.2); text-align: center; backdrop-filter: blur(10px); }
+.glitch-total { font-size: 42px; font-weight: 900; letter-spacing: -2px; color: #fff; text-shadow: 2px 2px var(--magenta), -2px -2px var(--cyan); margin: 10px 0; }
+.stats-bar { display: flex; justify-content: center; gap: 20px; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--cyan); }
+.deck { display: grid; grid-template-columns: 1fr; gap: 15px; padding: 20px; max-width: 500px; margin: 0 auto; }
+.q-card { position: relative; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 20px; transition: 0.3s; overflow: hidden; backdrop-filter: blur(5px); }
+.q-card.unpaid { background: rgba(255, 60, 0, 0.03); border-color: rgba(255, 60, 0, 0.3); animation: pulse-border 2s infinite; }
+@keyframes pulse-border { 0% { box-shadow: 0 0 0px rgba(255, 60, 0, 0); } 50% { box-shadow: 0 0 15px rgba(255, 60, 0, 0.2); } 100% { box-shadow: 0 0 0px rgba(255, 60, 0, 0); } }
+.card-label { font-size: 11px; font-weight: 800; color: var(--cyan); text-transform: uppercase; margin-bottom: 5px; }
+.card-amount { font-size: 24px; font-family: 'Courier New', monospace; font-weight: bold; margin-bottom: 15px; }
+.card-meta { display: flex; justify-content: space-between; font-size: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; color: #888; }
+.bio-toggle { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; align-items: center; }
 .toggle-input { display: none; }
-.toggle-btn {
-  width: 40px; height: 40px; border-radius: 50%;
-  border: 2px solid #333; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; transition: 0.4s;
-}
-
-.toggle-input:checked + .toggle-btn {
-  border-color: var(--safe); color: var(--safe);
-  box-shadow: 0 0 15px var(--safe);
-}
-
-.toggle-input:not(:checked) + .toggle-btn {
-  border-color: var(--warning); color: var(--warning);
-}
-
-.scanner-line {
-  position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-  background: rgba(0, 242, 255, 0.5);
-  box-shadow: 0 0 10px var(--cyan);
-  animation: scan 3s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes scan {
-  0% { top: 0%; opacity: 0; }
-  50% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
-
+.toggle-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #333; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.4s; }
+.toggle-input:checked + .toggle-btn { border-color: var(--safe); color: var(--safe); box-shadow: 0 0 15px var(--safe); }
+.toggle-input:not(:checked) + .toggle-btn { border-color: var(--warning); color: var(--warning); }
+.scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: rgba(0, 242, 255, 0.5); box-shadow: 0 0 10px var(--cyan); animation: scan 3s linear infinite; pointer-events: none; }
+@keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 </style>
 </head>
 <body>
@@ -155,118 +42,66 @@ body::before {
   <div class="stats-bar" style="color:var(--magenta)">Total Liability Scan</div>
 </div>
 
-<div class="deck" id="mainDeck">
-  </div>
+<div class="deck" id="mainDeck"></div>
 
 <script>
+/* ... (Your Script Logic remains exactly as you wrote it) ... */
 const API_URL = "https://script.google.com/macros/s/AKfycbwSR9-Kgq6dMjoOg0dSiJ_mXsFlrIz6qkw8BkeJQC0lwjDuEhTW_nvKhsrmGKzag732CA/exec";
-  const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
-  
-  // HELPER: Forces any date string into d/MMM/yyyy format for the UI
-  function formatDateToQuantum(dateStr) {
+const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+
+function formatDateToQuantum(dateStr) {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  
-  // Remove the Timestamp (T18:30...) immediately
   let s = String(dateStr).split('T')[0].trim();
   let p = s.split(/[-/.]/);
-  
   if (p.length < 3) return dateStr;
-
   let d, m, y;
-
-  if (p[0].length === 4) {
-    // It's YYYY-MM-DD
-    y = p[0];
-    m = isNaN(parseInt(p[1])) ? p[1] : months[parseInt(p[1]) - 1];
-    d = parseInt(p[2]);
-  } else {
-    // It's DD-MM-YYYY
-    d = parseInt(p[0]);
-    m = isNaN(parseInt(p[1])) ? p[1] : months[parseInt(p[1]) - 1];
-    y = p[2];
-  }
-
-  // Ensure Month is capitalized (e.g., "may" -> "May")
+  if (p[0].length === 4) { y = p[0]; m = isNaN(parseInt(p[1])) ? p[1] : months[parseInt(p[1]) - 1]; d = parseInt(p[2]); }
+  else { d = parseInt(p[0]); m = isNaN(parseInt(p[1])) ? p[1] : months[parseInt(p[1]) - 1]; y = p[2]; }
   m = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
-
   return `${d}/${m}/${y}`;
 }
-  async function loadQuantumGrid() {
-    try {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      document.getElementById('cardCount').innerText = `Nodes: ${data.length}`;
-      renderDeck(data);
-    } catch (e) {
-      console.error("Link Failure");
-    }
-  }
-  
-  function renderDeck(data) {
-    const deck = document.getElementById('mainDeck');
-    const totalEl = document.getElementById('mainTotal');
-    let totalUnpaid = 0;
-    let html = '';
-  
-    data.forEach(item => {
-      const isPaid = item.status.toLowerCase() === 'paid';
-      const amt = parseFloat(item.amount) || 0;
-      if(!isPaid) totalUnpaid += amt;
-  
-      // We format the dates specifically for the UI display here
-      const displayBill = formatDateToQuantum(item.billDate);
-      const displayDue = formatDateToQuantum(item.dueDate);
-  
-      html += `
-        <div class="q-card ${isPaid ? 'paid' : 'unpaid'}">
-          ${!isPaid ? '<div class="scanner-line"></div>' : ''}
-          <div class="card-label">${item.cardName}</div>
-          <div class="card-amount">${formatter.format(amt)}</div>
-          
-          <div class="bio-toggle">
-            <label>
-              <input type="checkbox" class="toggle-input" ${isPaid ? 'checked' : ''} 
-                     onchange="updateNode(${item.row}, '${displayBill}', '${displayDue}', this)">
-              <div class="toggle-btn">
-                 ${isPaid ? '✔' : '✕'}
-              </div>
-            </label>
-          </div>
-  
-          <div class="card-meta">
-            <span>GEN: ${displayBill}</span>
-            <span style="${!isPaid ? 'color:var(--warning)' : ''}">DUE: ${displayDue}</span>
-          </div>
-        </div>
-      `;
-    });
-  
-    deck.innerHTML = html;
-    totalEl.innerText = formatter.format(totalUnpaid);
-  }
-  
-  async function updateNode(row, billDate, dueDate, el) {
-    el.closest('.q-card').style.opacity = "0.3";
-    const status = el.checked ? "Paid" : "Unpaid";
-    
-    try {
-      await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ 
-          row: row, 
-          status: status, 
-          billDate: billDate, 
-          dueDate: dueDate 
-        })
-      });
-      loadQuantumGrid();
-    } catch (e) {
-      alert("Neural Link Interrupted");
-      loadQuantumGrid();
-    }
-  }
-  
-  loadQuantumGrid();
-  </script>
+
+async function loadQuantumGrid() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    document.getElementById('cardCount').innerText = `Nodes: ${data.length}`;
+    renderDeck(data);
+  } catch (e) { console.error("Link Failure"); }
+}
+
+function renderDeck(data) {
+  const deck = document.getElementById('mainDeck');
+  const totalEl = document.getElementById('mainTotal');
+  let totalUnpaid = 0;
+  let html = '';
+  data.forEach(item => {
+    const isPaid = item.status.toLowerCase() === 'paid';
+    const amt = parseFloat(item.amount) || 0;
+    if(!isPaid) totalUnpaid += amt;
+    const displayBill = formatDateToQuantum(item.billDate);
+    const displayDue = formatDateToQuantum(item.dueDate);
+    html += `<div class="q-card ${isPaid ? 'paid' : 'unpaid'}">${!isPaid ? '<div class="scanner-line"></div>' : ''}<div class="card-label">${item.cardName}</div><div class="card-amount">${formatter.format(amt)}</div><div class="bio-toggle"><label><input type="checkbox" class="toggle-input" ${isPaid ? 'checked' : ''} onchange="updateNode(${item.row}, '${displayBill}', '${displayDue}', this)"><div class="toggle-btn">${isPaid ? '✔' : '✕'}</div></label></div><div class="card-meta"><span>GEN: ${displayBill}</span><span style="${!isPaid ? 'color:var(--warning)' : ''}">DUE: ${displayDue}</span></div></div>`;
+  });
+  deck.innerHTML = html;
+  totalEl.innerText = formatter.format(totalUnpaid);
+}
+
+async function updateNode(row, billDate, dueDate, el) {
+  el.closest('.q-card').style.opacity = "0.3";
+  const status = el.checked ? "Paid" : "Unpaid";
+  try {
+    await fetch(API_URL, { method: "POST", body: JSON.stringify({ row: row, status: status, billDate: billDate, dueDate: dueDate }) });
+    loadQuantumGrid();
+  } catch (e) { alert("Neural Link Interrupted"); loadQuantumGrid(); }
+}
+
+// REGISTER SERVICE WORKER FOR INSTALLATION
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+
+loadQuantumGrid();
+</script>
 </body>
 </html>
