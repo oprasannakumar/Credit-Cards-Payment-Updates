@@ -159,77 +159,114 @@ body::before {
   </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzMl206QgGnE7TEZM6vdog_TtvknkC1B9VsTDwik03f9HewU2496_o1lPBVZvHYRbnqgA/exec";
-const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
-
-async function loadQuantumGrid() {
-  try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    
-    document.getElementById('cardCount').innerText = `Nodes: ${data.length}`;
-    renderDeck(data);
-  } catch (e) {
-    console.error("Link Failure");
-  }
-}
-
-function renderDeck(data) {
-  const deck = document.getElementById('mainDeck');
-  const totalEl = document.getElementById('mainTotal');
-  let totalUnpaid = 0;
-  let html = '';
-
-  data.forEach(item => {
-    const isPaid = item.status.toLowerCase() === 'paid';
-    const amt = parseFloat(item.amount) || 0;
-    if(!isPaid) totalUnpaid += amt;
-
-    html += `
-      <div class="q-card ${isPaid ? 'paid' : 'unpaid'}">
-        ${!isPaid ? '<div class="scanner-line"></div>' : ''}
-        <div class="card-label">${item.cardName}</div>
-        <div class="card-amount">${formatter.format(amt)}</div>
-        
-        <div class="bio-toggle">
-          <label>
-            <input type="checkbox" class="toggle-input" ${isPaid ? 'checked' : ''} 
-                   onchange="updateNode(${item.row}, this)">
-            <div class="toggle-btn">
-               ${isPaid ? '✔' : '✕'}
-            </div>
-          </label>
-        </div>
-
-        <div class="card-meta">
-          <span>GEN: ${item.billDate}</span>
-          <span style="${!isPaid ? 'color:var(--warning)' : ''}">DUE: ${item.dueDate}</span>
-        </div>
-      </div>
-    `;
-  });
-
-  deck.innerHTML = html;
-  totalEl.innerText = formatter.format(totalUnpaid);
-}
-
-async function updateNode(row, el) {
-  el.parentElement.style.opacity = "0.3";
-  const status = el.checked ? "Paid" : "Unpaid";
+const API_URL = "https://script.google.com/macros/s/AKfycbwSR9-Kgq6dMjoOg0dSiJ_mXsFlrIz6qkw8BkeJQC0lwjDuEhTW_nvKhsrmGKzag732CA/exec";
+  const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
   
-  try {
-    await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ row: row, status: status })
-    });
-    loadQuantumGrid();
-  } catch (e) {
-    alert("Neural Link Interrupted");
-    loadQuantumGrid();
-  }
-}
+  // HELPER: Forces any date string into d/MMM/yyyy format for the UI
+  function formatDateToQuantum(dateStr) {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+  // Remove the Timestamp (T18:30...) immediately
+  let s = String(dateStr).split('T')[0].trim();
+  let p = s.split(/[-/.]/);
+  
+  if (p.length < 3) return dateStr;
 
-loadQuantumGrid();
-</script>
+  let d, m, y;
+
+  if (p[0].length === 4) {
+    // It's YYYY-MM-DD
+    y = p[0];
+    m = isNaN(parseInt(p[1])) ? p[1] : months[parseInt(p[1]) - 1];
+    d = parseInt(p[2]);
+  } else {
+    // It's DD-MM-YYYY
+    d = parseInt(p[0]);
+    m = isNaN(parseInt(p[1])) ? p[1] : months[parseInt(p[1]) - 1];
+    y = p[2];
+  }
+
+  // Ensure Month is capitalized (e.g., "may" -> "May")
+  m = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+
+  return `${d}/${m}/${y}`;
+}
+  async function loadQuantumGrid() {
+    try {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      document.getElementById('cardCount').innerText = `Nodes: ${data.length}`;
+      renderDeck(data);
+    } catch (e) {
+      console.error("Link Failure");
+    }
+  }
+  
+  function renderDeck(data) {
+    const deck = document.getElementById('mainDeck');
+    const totalEl = document.getElementById('mainTotal');
+    let totalUnpaid = 0;
+    let html = '';
+  
+    data.forEach(item => {
+      const isPaid = item.status.toLowerCase() === 'paid';
+      const amt = parseFloat(item.amount) || 0;
+      if(!isPaid) totalUnpaid += amt;
+  
+      // We format the dates specifically for the UI display here
+      const displayBill = formatDateToQuantum(item.billDate);
+      const displayDue = formatDateToQuantum(item.dueDate);
+  
+      html += `
+        <div class="q-card ${isPaid ? 'paid' : 'unpaid'}">
+          ${!isPaid ? '<div class="scanner-line"></div>' : ''}
+          <div class="card-label">${item.cardName}</div>
+          <div class="card-amount">${formatter.format(amt)}</div>
+          
+          <div class="bio-toggle">
+            <label>
+              <input type="checkbox" class="toggle-input" ${isPaid ? 'checked' : ''} 
+                     onchange="updateNode(${item.row}, '${displayBill}', '${displayDue}', this)">
+              <div class="toggle-btn">
+                 ${isPaid ? '✔' : '✕'}
+              </div>
+            </label>
+          </div>
+  
+          <div class="card-meta">
+            <span>GEN: ${displayBill}</span>
+            <span style="${!isPaid ? 'color:var(--warning)' : ''}">DUE: ${displayDue}</span>
+          </div>
+        </div>
+      `;
+    });
+  
+    deck.innerHTML = html;
+    totalEl.innerText = formatter.format(totalUnpaid);
+  }
+  
+  async function updateNode(row, billDate, dueDate, el) {
+    el.closest('.q-card').style.opacity = "0.3";
+    const status = el.checked ? "Paid" : "Unpaid";
+    
+    try {
+      await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ 
+          row: row, 
+          status: status, 
+          billDate: billDate, 
+          dueDate: dueDate 
+        })
+      });
+      loadQuantumGrid();
+    } catch (e) {
+      alert("Neural Link Interrupted");
+      loadQuantumGrid();
+    }
+  }
+  
+  loadQuantumGrid();
+  </script>
 </body>
 </html>
