@@ -29,6 +29,17 @@ body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; heigh
 .toggle-input:not(:checked) + .toggle-btn { border-color: var(--warning); color: var(--warning); }
 .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: rgba(0, 242, 255, 0.5); box-shadow: 0 0 10px var(--cyan); animation: scan 3s linear infinite; pointer-events: none; }
 @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+.card-outstanding {
+  font-size: 14px;
+  color: #888;
+  margin-top: -10px;
+  margin-bottom: 15px;
+  font-family: 'Courier New', monospace;
+}
+.card-outstanding span {
+  color: var(--magenta);
+  font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -75,14 +86,43 @@ function renderDeck(data) {
   const totalEl = document.getElementById('mainTotal');
   let totalUnpaid = 0;
   let html = '';
+
   data.forEach(item => {
     const isPaid = item.status.toLowerCase() === 'paid';
     const amt = parseFloat(item.amount) || 0;
+    
+    // NEW: Capture Outstanding Balance from Column I
+    const outstanding = parseFloat(item.outstanding) || 0; 
+
     if(!isPaid) totalUnpaid += amt;
+    
     const displayBill = formatDateToQuantum(item.billDate);
     const displayDue = formatDateToQuantum(item.dueDate);
-    html += `<div class="q-card ${isPaid ? 'paid' : 'unpaid'}">${!isPaid ? '<div class="scanner-line"></div>' : ''}<div class="card-label">${item.cardName}</div><div class="card-amount">${formatter.format(amt)}</div><div class="bio-toggle"><label><input type="checkbox" class="toggle-input" ${isPaid ? 'checked' : ''} onchange="updateNode(${item.row}, '${displayBill}', '${displayDue}', this)"><div class="toggle-btn">${isPaid ? '✔' : '✕'}</div></label></div><div class="card-meta"><span>GEN: ${displayBill}</span><span style="${!isPaid ? 'color:var(--warning)' : ''}">DUE: ${displayDue}</span></div></div>`;
+
+    html += `
+      <div class="q-card ${isPaid ? 'paid' : 'unpaid'}">
+        ${!isPaid ? '<div class="scanner-line"></div>' : ''}
+        <div class="card-label">${item.cardName}</div>
+        
+        <div class="card-amount">${formatter.format(amt)}</div>
+        
+        <div class="card-outstanding">Out Standing: <span>${formatter.format(outstanding)}</span></div>
+
+        <div class="bio-toggle">
+          <label>
+            <input type="checkbox" class="toggle-input" ${isPaid ? 'checked' : ''} 
+                   onchange="updateNode(${item.row}, '${displayBill}', '${displayDue}', this)">
+            <div class="toggle-btn">${isPaid ? '✔' : '✕'}</div>
+          </label>
+        </div>
+
+        <div class="card-meta">
+          <span>GEN: ${displayBill}</span>
+          <span style="${!isPaid ? 'color:var(--warning)' : ''}">DUE: ${displayDue}</span>
+        </div>
+      </div>`;
   });
+  
   deck.innerHTML = html;
   totalEl.innerText = formatter.format(totalUnpaid);
 }
