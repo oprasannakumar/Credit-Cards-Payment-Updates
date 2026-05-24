@@ -8,7 +8,6 @@
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2092/2092663.png">
 <title>Quantum Finance</title>
 <style>
-/* ... (Your CSS remains exactly as you wrote it) ... */
 :root { --cyan: #00f2ff; --magenta: #bc00ff; --warning: #ff3c00; --safe: #00ff88; --bg-deep: #020408; }
 body { margin: 0; padding: 0; background: var(--bg-deep); color: #e2e8f0; font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden; }
 body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06)); background-size: 100% 2px, 3px 100%; z-index: 1000; pointer-events: none; }
@@ -56,19 +55,40 @@ body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; heigh
 <div class="deck" id="mainDeck"></div>
 
 <script>
-/* ... (Your Script Logic remains exactly as you wrote it) ... */
 const API_URL = "https://script.google.com/macros/s/AKfycbwSR9-Kgq6dMjoOg0dSiJ_mXsFlrIz6qkw8BkeJQC0lwjDuEhTW_nvKhsrmGKzag732CA/exec";
 const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 
 function formatDateToQuantum(dateStr) {
+  if (!dateStr) return "N/A";
+  
+  // If it's already in D/Mmm/YYYY format from a previous write, return it directly
+  if (typeof dateStr === 'string' && dateStr.includes('/')) {
+    const parts = dateStr.split('/');
+    if (parts.length === 3 && isNaN(parts[1])) return dateStr; 
+  }
+
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  let s = String(dateStr).split('T')[0].trim();
-  let p = s.split(/[-/.]/);
-  if (p.length < 3) return dateStr;
-  let d, m, y;
-  if (p[0].length === 4) { y = p[0]; m = isNaN(parseInt(p[1])) ? p[1] : months[parseInt(p[1]) - 1]; d = parseInt(p[2]); }
-  else { d = parseInt(p[0]); m = isNaN(parseInt(p[1])) ? p[1] : months[parseInt(p[1]) - 1]; y = p[2]; }
-  m = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+  
+  // Robust parsing fallbacks
+  let dateObj = new Date(dateStr);
+  if (isNaN(dateObj.getTime())) {
+    // Try clearing ISO timestamps or manual splits
+    let cleanStr = String(dateStr).split('T')[0].trim();
+    let p = cleanStr.split(/[-/.]/);
+    if (p.length < 3) return dateStr;
+    
+    if (p[0].length === 4) { // YYYY-MM-DD
+      dateObj = new Date(p[0], parseInt(p[1]) - 1, p[2]);
+    } else { // DD-MM-YYYY
+      dateObj = new Date(p[2], parseInt(p[1]) - 1, p[0]);
+    }
+  }
+
+  if (isNaN(dateObj.getTime())) return dateStr;
+
+  let d = dateObj.getDate();
+  let m = months[dateObj.getMonth()];
+  let y = dateObj.getFullYear();
   return `${d}/${m}/${y}`;
 }
 
@@ -78,7 +98,10 @@ async function loadQuantumGrid() {
     const data = await res.json();
     document.getElementById('cardCount').innerText = `Nodes: ${data.length}`;
     renderDeck(data);
-  } catch (e) { console.error("Link Failure"); }
+  } catch (e) { 
+    console.error("Link Failure", e); 
+    document.getElementById('mainDeck').innerHTML = `<div style="text-align:center; color:var(--warning); padding:20px;">Neural Link Interrupted. Check API Endpoint.</div>`;
+  }
 }
 
 function renderDeck(data) {
@@ -88,10 +111,8 @@ function renderDeck(data) {
   let html = '';
 
   data.forEach(item => {
-    const isPaid = item.status.toLowerCase() === 'paid';
+    const isPaid = item.status && item.status.toLowerCase() === 'paid';
     const amt = parseFloat(item.amount) || 0;
-    
-    // NEW: Capture Outstanding Balance from Column I
     const outstanding = parseFloat(item.outstanding) || 0; 
 
     if(!isPaid) totalUnpaid += amt;
@@ -102,7 +123,7 @@ function renderDeck(data) {
     html += `
       <div class="q-card ${isPaid ? 'paid' : 'unpaid'}">
         ${!isPaid ? '<div class="scanner-line"></div>' : ''}
-        <div class="card-label">${item.cardName}</div>
+        <div class="card-label">${item.cardName || 'Unknown Node'}</div>
         
         <div class="card-amount">${formatter.format(amt)}</div>
         
@@ -131,14 +152,22 @@ async function updateNode(row, billDate, dueDate, el) {
   el.closest('.q-card').style.opacity = "0.3";
   const status = el.checked ? "Paid" : "Unpaid";
   try {
-    await fetch(API_URL, { method: "POST", body: JSON.stringify({ row: row, status: status, billDate: billDate, dueDate: dueDate }) });
-    loadQuantumGrid();
-  } catch (e) { alert("Neural Link Interrupted"); loadQuantumGrid(); }
+    await fetch(API_URL, { 
+      method: "POST", 
+      mode: "no-cors", // Added safe cross-origin fallback for typical Web App configs
+      body: JSON.stringify({ row: row, status: status, billDate: billDate, dueDate: dueDate }) 
+    });
+    // Wait slightly for Google Sheets storage calculation buffer before reloading UI
+    setTimeout(loadQuantumGrid, 600);
+  } catch (e) { 
+    alert("Neural Link Interrupted"); 
+    loadQuantumGrid(); 
+  }
 }
 
 // REGISTER SERVICE WORKER FOR INSTALLATION
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  navigator.serviceWorker.register('sw.js').catch(err => console.log("SW registration skipped down stream"));
 }
 
 loadQuantumGrid();
