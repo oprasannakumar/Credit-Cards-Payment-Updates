@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#080410">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2092/2092663.png">
-<title>Quantum Finance // Kinetic HUD</title>
+<title>Quantum Finance // Slim HUD</title>
 <style>
 :root {
   --neon-pink: #ff007f;
@@ -15,7 +15,7 @@
   --neon-gold: #ffaa00;
   --neon-green: #00ffaa;
   --dark-void: #080410;
-  --card-glass: rgba(18, 10, 36, 0.7);
+  --card-glass: rgba(18, 10, 36, 0.75);
   --glass-border: rgba(255, 255, 255, 0.08);
 }
 
@@ -48,53 +48,50 @@ body {
   100% { background-position: center, center, 100% 50%, 0% 50%, 50% 100%; }
 }
 
+/* REDUCED TOTAL HUD WORKSPACE WIDTH CONTAINER */
 .hud-container {
-  max-width: 480px;
+  max-width: 360px;
   margin: 0 auto;
-  padding: 30px 20px 60px 20px;
+  padding: 12px 10px 60px 10px;
 }
 
 .hud-header {
-  position: relative;
-  background: rgba(22, 12, 44, 0.75);
-  border: 1px solid rgba(0, 242, 255, 0.3);
-  border-radius: 24px;
-  padding: 35px 24px;
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  background: rgba(22, 12, 44, 0.85);
+  border: 1px solid rgba(0, 242, 255, 0.4);
+  border-radius: 18px;
+  padding: 14px 16px;
   text-align: center;
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 242, 255, 0.15);
-  margin-bottom: 30px;
-  animation: floatingCard 4s ease-in-out infinite;
-}
-
-@keyframes floatingCard {
-  0% { transform: translateY(0px) scale(1); }
-  50% { transform: translateY(-6px) scale(1.01); box-shadow: 0 30px 55px -10px rgba(0, 0, 0, 0.8), 0 0 50px rgba(157, 0, 255, 0.2); }
-  100% { transform: translateY(0px) scale(1); }
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 255, 0.15);
+  margin-bottom: 16px;
+  transform: translateZ(0);
 }
 
 .system-status {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 9px;
   font-family: 'Courier New', monospace;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #a78bfa;
-  margin-bottom: 12px;
+  margin-bottom: 2px;
 }
 
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .status-pulse-ring {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background-color: var(--neon-green);
   border-radius: 50%;
   position: relative;
@@ -103,8 +100,8 @@ body {
 .status-pulse-ring::after {
   content: '';
   position: absolute;
-  inset: -4px;
-  border: 2px solid var(--neon-green);
+  inset: -3px;
+  border: 1.5px solid var(--neon-green);
   border-radius: 50%;
   animation: wavePing 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
@@ -115,44 +112,42 @@ body {
 }
 
 .glitch-total {
-  font-size: 52px;
+  font-size: 30px;
   font-weight: 900;
-  letter-spacing: -1.5px;
+  letter-spacing: -1px;
   background: linear-gradient(135deg, #ffffff 40%, #ff80df 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 6px;
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin: 2px 0;
 }
 
 .total-label {
-  font-size: 11px;
+  font-size: 8.5px;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.15em;
   color: var(--neon-cyan);
   font-weight: 800;
-  text-shadow: 0 0 12px rgba(0, 242, 255, 0.5);
+  text-shadow: 0 0 8px rgba(0, 242, 255, 0.4);
 }
 
 .deck {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 10px;
 }
 
-/* Base Glassmorphic Layout Structure */
+/* ULTRA-COMPACT SLIM CARDS PROPERTIES */
 .q-card {
   position: relative;
   background: var(--card-glass);
-  border-radius: 22px;
-  padding: 26px;
+  border-radius: 12px;
+  padding: 12px 14px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s, box-shadow 0.3s, background 0.3s;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s, box-shadow 0.3s;
   border: 1px solid var(--glass-border);
 }
 
-/* Seamless Unsettled Neon Wave Mapping Core */
 .q-card.unpaid {
   border-color: transparent;
   background: linear-gradient(var(--dark-void), var(--dark-void)) padding-box,
@@ -171,56 +166,49 @@ body {
 }
 
 @keyframes dynamicPulse {
-  0% { box-shadow: 0 12px 25px -5px rgba(255, 0, 127, 0.2), inset 0 0 10px rgba(255, 0, 127, 0.05); }
-  100% { box-shadow: 0 18px 40px -2px rgba(0, 242, 255, 0.3), inset 0 0 20px rgba(0, 242, 255, 0.1); }
+  0% { box-shadow: 0 6px 15px -5px rgba(255, 0, 127, 0.2); }
+  100% { box-shadow: 0 10px 20px -2px rgba(0, 242, 255, 0.25); }
 }
 
 .q-card.paid {
-  border-color: rgba(0, 255, 170, 0.25);
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3), inset 0 0 12px rgba(0, 255, 170, 0.02);
-  background: rgba(10, 25, 20, 0.4);
-}
-
-@media (hover: hover) {
-  .q-card:hover {
-    transform: translateY(-4px) scale(1.02);
-  }
-  .q-card.paid:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-  }
+  border-color: rgba(0, 255, 170, 0.18);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  background: rgba(10, 25, 20, 0.25);
 }
 
 .q-card:active {
-  transform: scale(0.96) !important;
+  transform: scale(0.97) !important;
 }
 
 .card-label {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: 0.02em;
-  margin-bottom: 6px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  margin-bottom: 1px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  max-width: 75%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-amount {
-  font-size: 32px;
+  font-size: 20px;
   font-family: 'Courier New', monospace;
   font-weight: 700;
   color: #ffffff;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
 }
 
 .card-outstanding {
-  font-size: 12px;
+  font-size: 9.5px;
   color: #94a3b8;
-  background: rgba(0, 0, 0, 0.35);
-  padding: 6px 14px;
-  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px 8px;
+  border-radius: 5px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: 1px solid rgba(255,255,255,0.04);
+  gap: 4px;
 }
 
 .card-outstanding span {
@@ -230,29 +218,21 @@ body {
 
 .q-card.unpaid .card-outstanding span {
   color: var(--neon-gold);
-  text-shadow: 0 0 10px rgba(255, 170, 0, 0.4);
-  animation: textFlicker 4s infinite;
-}
-
-@keyframes textFlicker {
-  0%, 95%, 100% { opacity: 1; }
-  96%, 98% { opacity: 0.7; }
-  97% { opacity: 0.9; }
 }
 
 .bio-toggle {
   position: absolute;
-  top: 26px;
-  right: 26px;
+  top: 12px;
+  right: 12px;
   z-index: 10;
 }
 
 .toggle-input { display: none; }
 
 .toggle-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
@@ -260,49 +240,45 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  font-size: 15px;
+  font-size: 11px;
 }
 
 .toggle-input:checked + .toggle-btn {
   border-color: var(--neon-green);
   color: var(--neon-green);
   background: rgba(0, 255, 170, 0.1);
-  transform: rotate(360deg) scale(1.05);
-  box-shadow: 0 0 20px rgba(0, 255, 170, 0.4);
 }
 
 .toggle-input:not(:checked) + .toggle-btn {
   border-color: var(--neon-pink);
   color: var(--neon-pink);
   background: rgba(255, 0, 127, 0.1);
-  box-shadow: 0 0 20px rgba(255, 0, 127, 0.25);
 }
 
 .card-meta {
   display: flex;
   justify-content: space-between;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 16px;
-  margin-top: 16px;
-  font-size: 12px;
+  padding-top: 6px;
+  margin-top: 8px;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
   color: #94a3b8;
 }
 
 .meta-block {
   display: flex;
   flex-direction: column;
-  gap: 3px;
 }
 
 .meta-block .meta-label {
-  font-size: 10px;
+  font-size: 7.5px;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 .meta-block .meta-val {
-  color: #e2e8f0;
+  color: #cbd5e1;
 }
 
 .q-card.unpaid .due-block .meta-val {
@@ -319,7 +295,7 @@ body {
     <div class="system-status">
       <div class="status-indicator">
         <div class="status-pulse-ring"></div>
-        <span>Sync.Stabilized</span>
+        <span>Sync.Active</span>
       </div>
       <div id="cardCount">Cards: --</div>
     </div>
@@ -362,7 +338,7 @@ async function loadQuantumGrid() {
     renderDeck(data);
   } catch (e) { 
     console.error("Link Failure", e);
-    document.getElementById('mainDeck').innerHTML = `<div style="text-align:center; color:var(--neon-pink); font-family:'Courier New', monospace; padding:30px; border: 1px dashed rgba(255,0,127,0.4); border-radius:16px;">SECURE LINK LOST: Re-establishing telemetry loop...</div>`;
+    document.getElementById('mainDeck').innerHTML = `<div style="text-align:center; color:var(--neon-pink); font-family:'Courier New', monospace; padding:20px; font-size:11px;">SECURE LINK LOST.</div>`;
   }
 }
 
@@ -372,7 +348,6 @@ function renderDeck(data) {
   let totalUnpaid = 0;
   let html = '';
 
-  // CORE MATRIX ORDER: Sorts all unpaid card structures directly to the top layer
   data.sort((a, b) => {
     const aPaid = a.status && a.status.toLowerCase() === 'paid';
     const bPaid = b.status && b.status.toLowerCase() === 'paid';
@@ -393,7 +368,7 @@ function renderDeck(data) {
       <div class="q-card ${isPaid ? 'paid' : 'unpaid'}">
         <div class="card-label">${item.cardName || 'Quantum Ledger'}</div>
         <div class="card-amount">${formatter.format(amt)}</div>
-        <div class="card-outstanding">Balance: <span>${formatter.format(outstanding)}</span></div>
+        <div class="card-outstanding">Bal: <span>${formatter.format(outstanding)}</span></div>
 
         <div class="bio-toggle">
           <label>
@@ -417,7 +392,7 @@ function renderDeck(data) {
   });
   
   if (totalEl.innerText !== formatter.format(totalUnpaid)) {
-    totalEl.style.textShadow = "0 0 30px var(--neon-cyan), 0 0 10px #ffffff";
+    totalEl.style.textShadow = "0 0 25px var(--neon-cyan), 0 0 10px #ffffff";
     setTimeout(() => { totalEl.style.textShadow = "none"; }, 400);
   }
   
@@ -428,7 +403,7 @@ function renderDeck(data) {
 async function updateNode(row, billDate, dueDate, el) {
   const parentCard = el.closest('.q-card');
   parentCard.style.opacity = "0.3";
-  parentCard.style.transform = "scale(1.05)";
+  parentCard.style.transform = "scale(1.03)";
   
   const status = el.checked ? "Paid" : "Unpaid";
   try {
@@ -439,7 +414,7 @@ async function updateNode(row, billDate, dueDate, el) {
     });
     setTimeout(loadQuantumGrid, 500);
   } catch (e) { 
-    alert("TRANSACTION DROPPED: Telemetry packet dropped during mutation."); 
+    alert("TRANSACTION DROPPED."); 
     loadQuantumGrid(); 
   }
 }
